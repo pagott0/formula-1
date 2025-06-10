@@ -8,14 +8,14 @@ export async function POST(request: NextRequest) {
       (await request.json()) as CreateDriverRequest
 
     // Verificar se já existe um piloto com o mesmo driverRef
-    const checkQuery = `SELECT id FROM drivers WHERE ref = $1`
+    const checkQuery = `SELECT id FROM drivers WHERE LOWER(ref) = LOWER($1)`
     const checkResult = await query(checkQuery, [driverRef])
 
     if (checkResult.rows.length > 0) {
       return NextResponse.json(
         {
           success: false,
-          message: "Já existe um piloto com esta referência",
+          message: "DRIVER ALREADY EXISTS",
         },
         { status: 400 },
       )
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const result = await withTransaction(async (client) => {
       // Inserir na tabela drivers
       const insertQuery = `
-        INSERT INTO drivers (ref, number, code, forename, surname, dob, nationality)
+        INSERT INTO drivers (ref, number, code, forename, surname, date_of_birth, nationality)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id
       `
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Piloto cadastrado com sucesso",
+      message: "DRIVER CREATED",
       driverId: result.driverId,
     })
   } catch (error) {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: "Erro ao cadastrar piloto",
+        message: "ERROR CREATING DRIVER",
       },
       { status: 500 },
     )

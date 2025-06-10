@@ -3,9 +3,8 @@ import './globals.css'
 import ClientSideToastContainer from '@/components/toast'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Fórmula 1',
+  description: 'Fórmula 1',
 }
 
 export default function RootLayout({

@@ -28,6 +28,15 @@ export default function AdminActions() {
   const [nationality, setNationality] = useState("")
   const [url, setUrl] = useState("")
 
+  // Add state management for driver form fields
+  const [driverRef, setDriverRef] = useState("")
+  const [driverNumber, setDriverNumber] = useState("")
+  const [driverCode, setDriverCode] = useState("")
+  const [forename, setForename] = useState("")
+  const [surname, setSurname] = useState("")
+  const [dob, setDob] = useState("")
+  const [driverNationality, setDriverNationality] = useState("")
+
   const handleTeamSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -85,15 +94,59 @@ export default function AdminActions() {
 
   const handleDriverSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const response = await fetch("/api/actions/admin/create-driver", {
-      method: "POST",
-      body: JSON.stringify({
-        driverRef: "piastri",
-        number: 81,
-      }),
-    })
-    toast.success("Piloto cadastrado com sucesso")
-    setOpenDriver(false)
+    try {
+      setIsLoading(true)
+      const response = await fetch("/api/actions/admin/create-driver", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          driverRef,
+          number: parseInt(driverNumber),
+          code: driverCode,
+          forename,
+          surname,
+          dob,
+          nationality: driverNationality,
+        }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          toast.error("Piloto já existe")
+        } else {
+          toast.error("Erro ao cadastrar piloto")
+        }
+        setIsLoading(false)
+        return
+      }
+
+      if(response.status === 200) {
+        console.log('sucesso')
+        toast.success("Piloto cadastrado com sucesso")
+        setOpenDriver(false)
+        
+        // Reset form fields
+        setDriverRef("")
+        setDriverNumber("")
+        setDriverCode("")
+        setForename("")
+        setSurname("")
+        setDob("")
+        setDriverNationality("")
+        setIsLoading(false)
+      } else if(response.status === 400) {
+        toast.error("Piloto já existe")
+        setIsLoading(false)
+      } else {
+        toast.error("Erro ao cadastrar piloto")
+        setIsLoading(false)
+      }
+    } catch (error) {
+      toast.error("Erro ao cadastrar piloto")
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -177,38 +230,84 @@ export default function AdminActions() {
             <form onSubmit={handleDriverSubmit} className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="driverRef">Driver Ref</Label>
-                <Input id="driverRef" placeholder="ex: piastri" required />
+                <Input 
+                  id="driverRef" 
+                  placeholder="ex: piastri" 
+                  required 
+                  value={driverRef}
+                  onChange={(e) => setDriverRef(e.target.value)}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="number">Número</Label>
-                  <Input id="number" placeholder="ex: 81" type="number" required />
+                  <Input 
+                    id="number" 
+                    placeholder="ex: 81" 
+                    type="number" 
+                    required 
+                    value={driverNumber}
+                    onChange={(e) => setDriverNumber(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="code">Código</Label>
-                  <Input id="code" placeholder="ex: PIA" maxLength={3} required />
+                  <Input 
+                    id="code" 
+                    placeholder="ex: PIA" 
+                    maxLength={3} 
+                    required 
+                    value={driverCode}
+                    onChange={(e) => setDriverCode(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="forename">Nome</Label>
-                  <Input id="forename" placeholder="ex: Oscar" required />
+                  <Input 
+                    id="forename" 
+                    placeholder="ex: Oscar" 
+                    required 
+                    value={forename}
+                    onChange={(e) => setForename(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="surname">Sobrenome</Label>
-                  <Input id="surname" placeholder="ex: Piastri" required />
+                  <Input 
+                    id="surname" 
+                    placeholder="ex: Piastri" 
+                    required 
+                    value={surname}
+                    onChange={(e) => setSurname(e.target.value)}
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dob">Data de Nascimento</Label>
-                <Input id="dob" type="date" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="nationality">Nacionalidade</Label>
-                <Input id="nationality" placeholder="ex: Australian" required />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dob">Data de Nascimento</Label>
+                  <Input 
+                    id="dob" 
+                    type="date" 
+                    required 
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="nationality">Nacionalidade</Label>
+                  <Input 
+                    id="nationality" 
+                    placeholder="ex: Australian" 
+                    required 
+                    value={driverNationality}
+                    onChange={(e) => setDriverNationality(e.target.value)}
+                  />
+                </div>
               </div>
               <DialogFooter>
-                <Button type="submit" className="bg-[#e10600] hover:bg-[#b30500]">
+                <Button loading={isLoading} disabled={isLoading} type="submit" className="bg-[#e10600] hover:bg-[#b30500]">
                   Cadastrar
                 </Button>
               </DialogFooter>
