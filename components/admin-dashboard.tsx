@@ -2,46 +2,55 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Trophy, Users, Calendar, Flag } from "lucide-react"
+import Loading from "@/components/loading"
 import AdminActions from "@/components/admin-actions"
 
-// Dados simulados para o dashboard
-const raceData = [
-  { name: "GP da Austrália", laps: 58, time: "1:32:01.892" },
-  { name: "GP da Arábia Saudita", laps: 50, time: "1:21:14.894" },
-  { name: "GP do Bahrein", laps: 57, time: "1:33:56.736" },
-  { name: "GP da China", laps: 56, time: "1:27:38.241" },
-  { name: "GP de Miami", laps: 57, time: "1:34:24.258" },
-]
-
-const teamData = [
-  { name: "Red Bull Racing", points: 287 },
-  { name: "Ferrari", points: 265 },
-  { name: "McLaren", points: 174 },
-  { name: "Mercedes", points: 151 },
-  { name: "Aston Martin", points: 49 },
-]
-
-const driverData = [
-  { name: "Max Verstappen", points: 195 },
-  { name: "Charles Leclerc", points: 148 },
-  { name: "Sergio Perez", points: 126 },
-  { name: "Lando Norris", points: 116 },
-  { name: "Carlos Sainz", points: 116 },
-]
-
-const chartData = [
-  { name: "Austrália", RedBull: 44, Ferrari: 43, McLaren: 27, Mercedes: 16 },
-  { name: "Arábia Saudita", RedBull: 43, Ferrari: 40, McLaren: 12, Mercedes: 27 },
-  { name: "Bahrein", RedBull: 31, Ferrari: 38, McLaren: 18, Mercedes: 16 },
-  { name: "China", RedBull: 25, Ferrari: 36, McLaren: 33, Mercedes: 22 },
-  { name: "Miami", RedBull: 37, Ferrari: 33, McLaren: 25, Mercedes: 18 },
-]
-
 export default function AdminDashboard() {
+  const [raceData, setRaceData] = useState<Array<{ name: string; laps: number; time: string }>>([])
+  const [teamData, setTeamData] = useState<Array<{ name: string; points: number }>>([])
+  const [driverData, setDriverData] = useState<Array<{ name: string; points: number }>>([])
+  const [chartData, setChartData] = useState<Array<{ name: string; RedBull: number; Ferrari: number; McLaren: number; Mercedes: number }>>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<{
+    totalDrivers: number;
+    totalConstructors: number;
+    totalSeasons: number;
+    currentYearRaces: number;
+    completedRaces: number;
+  }>({
+    totalDrivers: 0,
+    totalConstructors: 0,
+    totalSeasons: 0,
+    currentYearRaces: 0,
+    completedRaces: 0,
+  })
+
+  useEffect(() => {
+    fetch('/api/dashboard/admin')
+      .then(response => response.json())
+      .then(data => {
+        setStats(data.stats)
+        setRaceData(data.races)
+        setTeamData(data.constructors)
+        setDriverData(data.drivers)
+        setChartData(data.racePoints)
+        setLoading(false)
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error)
+      })
+  }, [])
+
   return (
     <div className="space-y-8">
+      {loading ? 
+        <Loading />
+      : (
+        <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -49,7 +58,7 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">42</div>
+            <div className="text-2xl font-bold">{stats.totalDrivers}</div>
             <p className="text-xs text-muted-foreground">Pilotos ativos e inativos</p>
           </CardContent>
         </Card>
@@ -59,7 +68,7 @@ export default function AdminDashboard() {
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">10</div>
+            <div className="text-2xl font-bold">{stats.totalConstructors}</div>
             <p className="text-xs text-muted-foreground">Escuderias ativas</p>
           </CardContent>
         </Card>
@@ -69,18 +78,18 @@ export default function AdminDashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">74</div>
+            <div className="text-2xl font-bold">{stats.totalSeasons}</div>
             <p className="text-xs text-muted-foreground">Desde 1950</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Corridas em 2024</CardTitle>
+            <CardTitle className="text-sm font-medium">Corridas em {new Date().getFullYear()}</CardTitle>
             <Flag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">5 já realizadas</p>
+            <div className="text-2xl font-bold">{stats.currentYearRaces}</div>
+            <p className="text-xs text-muted-foreground">Corridas programadas para este ano</p>
           </CardContent>
         </Card>
       </div>
@@ -188,6 +197,8 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+      </>
+      )}
     </div>
   )
 }
