@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
+import AuthStorage from "@/utils/auth"
 
 export default function LoginForm() {
   const [username, setUsername] = useState("")
@@ -39,7 +40,14 @@ export default function LoginForm() {
           title: "Login bem-sucedido",
           description: data.message || "Bem-vindo!",
         })
-        router.push(`/dashboard?userType=${data.userType}`)
+        const authData = {
+          token: data.token,
+          user: data.user,
+          expiresAt: Date.now() + 3600 * 1000, // 1 hora
+          userType: data.user.user_type,
+        }
+        AuthStorage.setAuth(authData)
+        router.push(`/dashboard`)
       } else {
         toast({
           title: "Erro de autenticação",
