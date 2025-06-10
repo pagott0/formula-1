@@ -7,11 +7,11 @@ export async function GET(request: NextRequest) {
     // Obter estatísticas gerais
     const statsResult = await query(`
       SELECT
-        (SELECT COUNT(*) FROM drivers) AS total_drivers,
-        (SELECT COUNT(*) FROM constructors) AS total_constructors,
-        (SELECT COUNT(DISTINCT year) FROM races) AS total_seasons,
-        (SELECT COUNT(*) FROM races WHERE year = EXTRACT(YEAR FROM CURRENT_DATE)) AS current_year_races,
-        (SELECT COUNT(*) FROM races WHERE date < CURRENT_DATE AND year = EXTRACT(YEAR FROM CURRENT_DATE)) AS completed_races
+      (SELECT COUNT(*) FROM drivers) AS total_drivers,
+      (SELECT COUNT(*) FROM constructors) AS total_constructors,
+      (SELECT COUNT(DISTINCT year) FROM races) AS total_seasons,
+      (SELECT COUNT(*) FROM races WHERE year = date_part('year', CURRENT_DATE)) AS current_year_races,
+      (SELECT COUNT(*) FROM races WHERE date < CURRENT_DATE AND year = date_part('year', CURRENT_DATE)) AS completed_races
     `)
 
     const stats: AdminStats = {
@@ -26,13 +26,13 @@ export async function GET(request: NextRequest) {
     const racesResult = await query(`
       SELECT 
         r.name, 
-        r.laps, 
-        (SELECT MIN(time) FROM results res WHERE res.race_id = r.id) AS time,
+        NULL AS laps, 
+        (SELECT MIN(fastest_lap_time) FROM results res WHERE res.race_id = r.id) AS time,
         r.date,
         c.name AS circuit
       FROM races r
       JOIN circuits c ON r.circuit_id = c.id
-      WHERE r.year = EXTRACT(YEAR FROM CURRENT_DATE)
+      WHERE r.year = date_part('year', CURRENT_DATE)
       ORDER BY r.date
       LIMIT 5
     `)
@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
       FROM constructors c
       JOIN results r ON r.constructor_id = c.id
       JOIN races ra ON r.race_id = ra.id
-      WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
-      GROUP BY c.name, c.nationality
+      WHERE ra.year = date_part('year', CURRENT_DATE)
+      GROUP BY c.id, c.name, c.nationality
       ORDER BY points DESC
       LIMIT 5
     `)
@@ -69,15 +69,15 @@ export async function GET(request: NextRequest) {
     // Obter pilotos do ano atual com pontuação
     const driversResult = await query(`
       SELECT 
-        CONCAT(d.forename, ' ', d.surname) AS name, 
+        (d.forename || ' ' || d.surname) AS name, 
         SUM(r.points) AS points,
         c.name AS constructor
       FROM drivers d
       JOIN results r ON r.driver_id = d.id
       JOIN constructors c ON r.constructor_id = c.id
       JOIN races ra ON r.race_id = ra.id
-      WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
-      GROUP BY d.forename, d.surname, c.name
+      WHERE ra.year = date_part('year', CURRENT_DATE)
+      GROUP BY d.id, d.forename, d.surname, c.name
       ORDER BY points DESC
       LIMIT 5
     `)
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
         FROM constructors c
         JOIN results r ON r.constructor_id = c.id
         JOIN races ra ON r.race_id = ra.id
-        WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
+        WHERE ra.year = date_part('year', CURRENT_DATE)
         GROUP BY c.id, c.name
         ORDER BY SUM(r.points) DESC
         LIMIT 4
@@ -109,8 +109,8 @@ export async function GET(request: NextRequest) {
       FROM races ra
       JOIN results r ON r.race_id = ra.id
       JOIN top_constructors tc ON r.constructor_id = tc.id
-      WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
-      GROUP BY ra.name, tc.name
+      WHERE ra.year = date_part('year', CURRENT_DATE)
+      GROUP BY ra.id, ra.name, tc.name
       ORDER BY ra.date
     `)
 
@@ -140,7 +140,6 @@ export async function GET(request: NextRequest) {
       racePoints,
     })
   } catch (error) {
-    console.error("Admin dashboard error:", error)
     return NextResponse.json({ error: "Erro ao carregar dados do dashboard" }, { status: 500 })
   }
 }
