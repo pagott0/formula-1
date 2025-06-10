@@ -77,7 +77,7 @@ BEGIN
   INSERT INTO users (username, password, user_type, name, constructor_id)
   VALUES (
     LOWER(NEW.ref) || '_c',
-    encode(digest('escuderia', 'sha256'), 'hex'),
+    encode(digest(NEW.ref, 'sha256'), 'hex'),
     'team',
     NEW.name,
     NEW.id
@@ -93,7 +93,7 @@ BEGIN
   INSERT INTO users (username, password, user_type, name, driver_id)
   VALUES (
     LOWER(NEW.ref) || '_d',
-    encode(digest('piloto', 'sha256'), 'hex'),
+    encode(digest(NEW.ref, 'sha256'), 'hex'),
     'driver',
     CONCAT(NEW.forename, ' ', NEW.surname),
     NEW.id
@@ -209,7 +209,7 @@ BEGIN
     INSERT INTO users (username, password, user_type, name, constructor_id)
     SELECT 
         LOWER(c.ref) || '_c',
-        encode(digest('escuderia', 'sha256'), 'hex'),
+        encode(digest(c.ref, 'sha256'), 'hex'),
         'team',
         c.name,
         c.id
@@ -229,7 +229,7 @@ BEGIN
     INSERT INTO users (username, password, user_type, name, driver_id)
     SELECT 
         LOWER(d.ref) || '_d',
-        encode(digest('piloto', 'sha256'), 'hex'),
+        encode(digest(d.ref, 'sha256'), 'hex'),
         'driver',
         CONCAT(d.forename, ' ', d.surname),
         d.id
