@@ -201,3 +201,43 @@ BEGIN
     RETURN position;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Função para criar usuários para construtores existentes
+CREATE OR REPLACE FUNCTION create_users_for_existing_constructors()
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO users (username, password, user_type, name, constructor_id)
+    SELECT 
+        LOWER(c.ref) || '_c',
+        encode(digest('escuderia', 'sha256'), 'hex'),
+        'team',
+        c.name,
+        c.id
+    FROM constructors c
+    LEFT JOIN users u ON u.constructor_id = c.id
+    WHERE u.id IS NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Executar a função para criar usuários para construtores existentes
+SELECT create_users_for_existing_constructors();
+
+-- Função para criar usuários para pilotos existentes
+CREATE OR REPLACE FUNCTION create_users_for_existing_drivers()
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO users (username, password, user_type, name, driver_id)
+    SELECT 
+        LOWER(d.ref) || '_d',
+        encode(digest('piloto', 'sha256'), 'hex'),
+        'driver',
+        CONCAT(d.forename, ' ', d.surname),
+        d.id
+    FROM drivers d
+    LEFT JOIN users u ON u.driver_id = d.id
+    WHERE u.id IS NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Executar a função para criar usuários para pilotos existentes
+SELECT create_users_for_existing_drivers();
