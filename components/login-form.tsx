@@ -20,7 +20,6 @@ export default function LoginForm() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulação de login - em um cenário real, isso seria uma chamada à API
     try {
       const response = await fetch('api/auth/login', {
         method: 'POST',
@@ -84,7 +83,14 @@ export default function LoginForm() {
       </div>
       <div className="pt-2">
         <Button type="submit" className="w-full bg-[#e10600] hover:bg-[#b30500]" disabled={isLoading}>
-          {isLoading ? "Entrando..." : "Entrar"}
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Entrando...
+            </div>
+          ) : (
+            "Entrar"
+          )}
         </Button>
       </div>
       <div className="text-sm text-center text-gray-500 mt-4">
