@@ -1,10 +1,16 @@
-import { sql } from "@vercel/postgres"
+import { Pool } from 'pg'
+
+// Create a pooled connection
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+})
 
 // Função para executar queries SQL
 export async function query(text: string, params?: any[]) {
   const start = Date.now()
   try {
-    const res = await sql.query(text, params || [])
+    const res = await pool.query(text, params || [])
     const duration = Date.now() - start
     console.log("Executed query", { text, duration, rows: res.rowCount })
     return res
@@ -16,23 +22,24 @@ export async function query(text: string, params?: any[]) {
 
 // Função para executar transações
 export async function withTransaction<T>(callback: (client: any) => Promise<T>): Promise<T> {
-  // Para @vercel/postgres, usamos uma abordagem simplificada
-  // Em produção, você pode implementar transações usando BEGIN/COMMIT/ROLLBACK
+  const client = await pool.connect()
   try {
-    await sql`BEGIN`
-    const result = await callback(sql)
-    await sql`COMMIT`
+    await client.query('BEGIN')
+    const result = await callback(client)
+    await client.query('COMMIT')
     return result
   } catch (error) {
-    await sql`ROLLBACK`
+    await client.query('ROLLBACK')
     throw error
+  } finally {
+    client.release()
   }
 }
 
 // Função para verificar a conexão com o banco
 export async function testConnection() {
   try {
-    const res = await sql`SELECT NOW()`
+    const res = await pool.query('SELECT NOW()')
     return { connected: true, timestamp: res.rows[0].now }
   } catch (error) {
     console.error("Database connection error:", error)

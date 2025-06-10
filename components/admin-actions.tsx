@@ -21,18 +21,65 @@ export default function AdminActions() {
   const { toast } = useToast()
   const [openTeam, setOpenTeam] = useState(false)
   const [openDriver, setOpenDriver] = useState(false)
+  
+  // Add state management for team form fields
+  const [constructorRef, setConstructorRef] = useState("")
+  const [name, setName] = useState("")
+  const [nationality, setNationality] = useState("")
+  const [url, setUrl] = useState("")
 
-  const handleTeamSubmit = (e: React.FormEvent) => {
+  const handleTeamSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    toast({
-      title: "Escuderia cadastrada",
-      description: "A escuderia foi cadastrada com sucesso.",
-    })
-    setOpenTeam(false)
+    
+    try {
+      const response = await fetch("/api/actions/admin/create-constructor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          constructorRef,
+          name,
+          nationality,
+          url,
+        }),
+      })
+
+      console.log(response)
+
+      if (!response.ok) {
+        throw new Error("Failed to create team")
+      }
+
+      toast({
+        title: "Escuderia cadastrada",
+        description: "A escuderia foi cadastrada com sucesso.",
+      })
+      setOpenTeam(false)
+      
+      // Reset form fields
+      setConstructorRef("")
+      setName("")
+      setNationality("")
+      setUrl("")
+    } catch (error) {
+      toast({
+        title: "Erro ao cadastrar escuderia",
+        description: "Ocorreu um erro ao cadastrar a escuderia. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleDriverSubmit = (e: React.FormEvent) => {
+  const handleDriverSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const response = await fetch("/api/actions/admin/create-driver", {
+      method: "POST",
+      body: JSON.stringify({
+        driverRef: "piastri",
+        number: 81,
+      }),
+    })
     toast({
       title: "Piloto cadastrado",
       description: "O piloto foi cadastrado com sucesso.",
@@ -60,19 +107,43 @@ export default function AdminActions() {
             <form onSubmit={handleTeamSubmit} className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="constructorRef">Constructor Ref</Label>
-                <Input id="constructorRef" placeholder="ex: alpine" required />
+                <Input 
+                  id="constructorRef" 
+                  placeholder="ex: alpine" 
+                  required 
+                  value={constructorRef}
+                  onChange={(e) => setConstructorRef(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
-                <Input id="name" placeholder="ex: Alpine F1 Team" required />
+                <Input 
+                  id="name" 
+                  placeholder="ex: Alpine F1 Team" 
+                  required 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nationality">Nacionalidade</Label>
-                <Input id="nationality" placeholder="ex: French" required />
+                <Input 
+                  id="nationality" 
+                  placeholder="ex: French" 
+                  required 
+                  value={nationality}
+                  onChange={(e) => setNationality(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="url">URL</Label>
-                <Input id="url" placeholder="ex: http://en.wikipedia.org/wiki/Alpine_F1_Team" required />
+                <Input 
+                  id="url" 
+                  placeholder="ex: http://en.wikipedia.org/wiki/Alpine_F1_Team" 
+                  required 
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                />
               </div>
               <DialogFooter>
                 <Button type="submit" className="bg-[#e10600] hover:bg-[#b30500]">
