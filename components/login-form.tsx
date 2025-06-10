@@ -21,36 +21,42 @@ export default function LoginForm() {
     setIsLoading(true)
 
     // Simulação de login - em um cenário real, isso seria uma chamada à API
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await fetch('api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      })
 
-      // Verificação simplificada para demonstração
-      if (username === "admin" && password === "admin") {
+      const data = await response.json()
+
+      if (response.ok) {
         toast({
           title: "Login bem-sucedido",
-          description: "Bem-vindo, Administrador!",
+          description: data.message || "Bem-vindo!",
         })
-        router.push("/dashboard?userType=admin")
-      } else if (username.endsWith("_c")) {
-        toast({
-          title: "Login bem-sucedido",
-          description: "Bem-vindo à sua escuderia!",
-        })
-        router.push("/dashboard?userType=team")
-      } else if (username.endsWith("_d")) {
-        toast({
-          title: "Login bem-sucedido",
-          description: "Bem-vindo, Piloto!",
-        })
-        router.push("/dashboard?userType=driver")
+        router.push(`/dashboard?userType=${data.userType}`)
       } else {
         toast({
           title: "Erro de autenticação",
-          description: "Usuário ou senha incorretos",
+          description: data.message || "Usuário ou senha incorretos",
           variant: "destructive",
         })
       }
-    }, 1000)
+    } catch (error) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
