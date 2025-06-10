@@ -7,14 +7,13 @@ export async function POST(request: NextRequest) {
     const { constructorRef, name, nationality, url } = (await request.json()) as CreateConstructorRequest
 
     // Verificar se já existe uma escuderia com o mesmo constructorRef
-    const checkQuery = `SELECT id FROM constructors WHERE ref = $1`
+    const checkQuery = `SELECT id FROM constructors WHERE LOWER(ref) = LOWER($1)`
     const checkResult = await query(checkQuery, [constructorRef])
-
     if (checkResult.rows.length > 0) {
       return NextResponse.json(
         {
           success: false,
-          message: "Já existe uma escuderia com esta referência",
+          message: "CONSTRUCTOR ALREADY EXISTS",
         },
         { status: 400 },
       )
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
         VALUES ($1, $2, $3, $4)
         RETURNING id
       `
-
       const insertResult = await client.query(insertQuery, [constructorRef, name, nationality, url])
       const constructorId = insertResult.rows[0].id
 
@@ -45,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Escuderia cadastrada com sucesso",
+      message: "CONSTRUCTOR CREATED",
       constructorId: result.constructorId,
     })
   } catch (error) {
@@ -53,7 +51,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: "Erro ao cadastrar escuderia",
+        message: "ERROR CREATING CONSTRUCTOR",
       },
       { status: 500 },
     )

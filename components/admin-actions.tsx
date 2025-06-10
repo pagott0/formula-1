@@ -15,12 +15,12 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-toastify"
 
 export default function AdminActions() {
-  const { toast } = useToast()
   const [openTeam, setOpenTeam] = useState(false)
   const [openDriver, setOpenDriver] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   
   // Add state management for team form fields
   const [constructorRef, setConstructorRef] = useState("")
@@ -32,6 +32,7 @@ export default function AdminActions() {
     e.preventDefault()
     
     try {
+      setIsLoading(true)
       const response = await fetch("/api/actions/admin/create-constructor", {
         method: "POST",
         headers: {
@@ -45,29 +46,40 @@ export default function AdminActions() {
         }),
       })
 
-      console.log(response)
 
       if (!response.ok) {
-        throw new Error("Failed to create team")
+        if (response.status === 400) {
+          toast.error("Escuderia já existe")
+        } else {
+          toast.error("Erro ao cadastrar escuderia")
+        }
+        setIsLoading(false)
+        return
       }
 
-      toast({
-        title: "Escuderia cadastrada",
-        description: "A escuderia foi cadastrada com sucesso.",
-      })
-      setOpenTeam(false)
+      if(response.status === 200) {
+        toast.success("Escuderia cadastrada com sucesso")
+        setOpenTeam(false)
+        
+        // Reset form fields
+        setConstructorRef("")
+        setName("")
+        setNationality("")
+        setUrl("")
+        setIsLoading(false)
+      } else if(response.status === 400) {
+        toast.error("Escuderia já existe")
+        setIsLoading(false)
+      } else {
+        toast.error("Erro ao cadastrar escuderia")
+        setIsLoading(false)
+      }
+
+    
       
-      // Reset form fields
-      setConstructorRef("")
-      setName("")
-      setNationality("")
-      setUrl("")
     } catch (error) {
-      toast({
-        title: "Erro ao cadastrar escuderia",
-        description: "Ocorreu um erro ao cadastrar a escuderia. Tente novamente.",
-        variant: "destructive",
-      })
+      toast.error("Erro ao cadastrar escuderia")
+      setIsLoading(false)
     }
   }
 
@@ -80,10 +92,7 @@ export default function AdminActions() {
         number: 81,
       }),
     })
-    toast({
-      title: "Piloto cadastrado",
-      description: "O piloto foi cadastrado com sucesso.",
-    })
+    toast.success("Piloto cadastrado com sucesso")
     setOpenDriver(false)
   }
 
@@ -146,7 +155,7 @@ export default function AdminActions() {
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" className="bg-[#e10600] hover:bg-[#b30500]">
+                <Button loading={isLoading} disabled={isLoading} type="submit" className="bg-[#e10600] hover:bg-[#b30500]">
                   Cadastrar
                 </Button>
               </DialogFooter>
