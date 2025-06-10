@@ -9,9 +9,10 @@ import DriverDashboard from "@/components/driver-dashboard"
 import DashboardHeader from "@/components/dashboard-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AuthStorage from "@/utils/auth"
-import { ConstructorRacesReport } from "@/lib/types"
+import { ConstructorRacesReport, AirportReport, StatusReport } from "@/lib/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
+import { Input } from "@/components/ui/input"
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("")
@@ -80,6 +81,59 @@ function AdminReports() {
   const { toast } = useToast()
   const [reportData, setReportData] = useState<ConstructorRacesReport[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [airportData, setAirportData] = useState<AirportReport[]>([])
+  const [isLoadingAirports, setIsLoadingAirports] = useState(false)
+  const [city, setCity] = useState("")
+  const [statusData, setStatusData] = useState<StatusReport[]>([])
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+
+  const handleGenerateReport1 = async () => {
+    try {
+      setIsLoadingStatus(true)
+      const response = await fetch("/api/reports/admin/status-results")
+      const responseJson: {
+        data: StatusReport[]
+      } = await response.json()
+      setStatusData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingStatus(false)
+    }
+  }
+
+  const handleGenerateReport2 = async () => {
+    if (!city) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe uma cidade",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsLoadingAirports(true)
+      const response = await fetch(`/api/reports/admin/airports?city=${encodeURIComponent(city)}`)
+      const responseJson: {
+        data: AirportReport[]
+      } = await response.json()
+      console.log(responseJson.data)
+      setAirportData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingAirports(false)
+    }
+  }
 
   const handleGenerateReport3 = async () => {
     try {
@@ -103,17 +157,92 @@ function AdminReports() {
   const handleHideReport = () => {
     setReportData([])
   }
+
+  const handleHideAirportReport = () => {
+    setAirportData([])
+  }
+
+  const handleHideStatusReport = () => {
+    setStatusData([])
+  }
   
   return (
     <div className="grid gap-6">
-      <ReportCard
-        title="Relatório 1: Quantidade de resultados por status"
-        description="Indica a quantidade de resultados por cada status, apresentando o nome do status e sua contagem."
-      />
-      <ReportCard
-        title="Relatório 2: Aeroportos próximos a cidades"
-        description="Apresenta aeroportos brasileiros a até 100 Km de uma cidade especificada."
-      />
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 1: Quantidade de resultados por status</h3>
+        <p className="text-gray-600 mb-4">Indica a quantidade de resultados por cada status, apresentando o nome do status e sua contagem.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport1} loading={isLoadingStatus}>Gerar Relatório</Button>
+          {statusData?.length > 0 && (
+            <Button onClick={handleHideStatusReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {statusData?.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {statusData.map((status, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{status.status}</TableCell>
+                      <TableCell>{status.count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 2: Aeroportos próximos a cidades</h3>
+        <p className="text-gray-600 mb-4">Apresenta aeroportos brasileiros a até 100 Km de uma cidade especificada.</p>
+        <div className="flex gap-2 items-center">
+          <Input
+            type="text"
+            placeholder="Digite o nome da cidade"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="max-w-xs"
+          />
+          <Button onClick={handleGenerateReport2} loading={isLoadingAirports}>Gerar Relatório</Button>
+          {airportData?.length > 0 && (
+            <Button onClick={handleHideAirportReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {airportData?.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Aeroporto</TableHead>
+                    <TableHead>Cidade</TableHead>
+                    <TableHead>Distância (km)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {airportData.map((airport, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{airport.name}</TableCell>
+                      <TableCell>{airport.city}</TableCell>
+                      <TableCell>{airport.distance.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="border rounded-lg p-6 bg-white shadow-sm">
         <h3 className="text-xl font-semibold mb-2">Relatório 3: Escuderias e corridas</h3>
         <p className="text-gray-600 mb-4">Lista todas as escuderias cadastradas com a quantidade de pilotos e detalhes sobre corridas.</p>

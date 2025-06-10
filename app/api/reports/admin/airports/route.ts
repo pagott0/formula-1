@@ -18,16 +18,17 @@ export async function GET(request: NextRequest) {
         a.name,
         a.city,
         ST_Distance(
-          ST_MakePoint(a.longitude, a.latitude)::geography,
-          (SELECT ST_MakePoint(longitude, latitude)::geography FROM cities WHERE name = $1)
+          ST_MakePoint(a.lng_deg, a.lat_deg)::geography,
+          (SELECT ST_MakePoint(lng_deg, lat_deg)::geography FROM geocities15k WHERE name = $1)
         ) / 1000 AS distance
       FROM airports a
       WHERE ST_Distance(
-        ST_MakePoint(a.longitude, a.latitude)::geography,
-        (SELECT ST_MakePoint(longitude, latitude)::geography FROM cities WHERE name = $1)
+        ST_MakePoint(a.lng_deg, a.lat_deg)::geography,
+        (SELECT ST_MakePoint(lng_deg, lat_deg)::geography FROM geocities15k WHERE name = $1)
       ) / 1000 <= 100
       ORDER BY distance
     `
+    console.log(airportsQuery)
 
     const airportsResult = await query(airportsQuery, [city])
     const airportsReports: AirportReport[] = airportsResult.rows.map((row) => ({
