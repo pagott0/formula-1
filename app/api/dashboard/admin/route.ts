@@ -77,18 +77,29 @@ export async function GET(request: NextRequest) {
     }))
 
     // Obter escuderias do ano atual com pontuação
+    // const constructorsResult = await query(`
+    //   SELECT 
+    //     c.name, 
+    //     SUM(r.points) AS points,
+    //     c.nationality
+    //   FROM constructors c
+    //   JOIN results r ON r.constructor_id = c.id
+    //   JOIN races ra ON r.race_id = ra.id
+    //   WHERE ra.year = date_part('year', CURRENT_DATE)
+    //   GROUP BY c.id, c.name, c.nationality
+    //   ORDER BY points DESC
+    // `)
     const constructorsResult = await query(`
       SELECT 
-        c.name, 
-        SUM(r.points) AS points,
-        c.nationality
+      c.name, 
+      SUM(r.points) AS points,
+      c.nationality
       FROM constructors c
       JOIN results r ON r.constructor_id = c.id
       JOIN races ra ON r.race_id = ra.id
-      WHERE ra.year = date_part('year', CURRENT_DATE)
+      WHERE ra.year = 2024
       GROUP BY c.id, c.name, c.nationality
       ORDER BY points DESC
-      LIMIT 5
     `)
 
     const constructors: Constructor[] = constructorsResult.rows.map((row) => ({
@@ -100,18 +111,31 @@ export async function GET(request: NextRequest) {
     // Obter pilotos do ano atual com pontuação
     const driversResult = await query(`
       SELECT 
-        (d.forename || ' ' || d.surname) AS name, 
-        SUM(r.points) AS points,
-        c.name AS constructor
+      (d.forename || ' ' || d.surname) AS name, 
+      SUM(r.points) AS points,
+      c.name AS constructor
       FROM drivers d
       JOIN results r ON r.driver_id = d.id
       JOIN constructors c ON r.constructor_id = c.id
       JOIN races ra ON r.race_id = ra.id
-      WHERE ra.year = date_part('year', CURRENT_DATE)
+      WHERE ra.year = 2024
       GROUP BY d.id, d.forename, d.surname, c.name
       ORDER BY points DESC
-      LIMIT 5
     `)
+
+    //  const driversResult = await query(`
+    //   SELECT 
+    //     (d.forename || ' ' || d.surname) AS name, 
+    //     SUM(r.points) AS points,
+    //     c.name AS constructor
+    //   FROM drivers d
+    //   JOIN results r ON r.driver_id = d.id
+    //   JOIN constructors c ON r.constructor_id = c.id
+    //   JOIN races ra ON r.race_id = ra.id
+    //   WHERE ra.year = date_part('year', CURRENT_DATE)
+    //   GROUP BY d.id, d.forename, d.surname, c.name
+    //   ORDER BY points DESC
+    // `)
 
     const drivers: Driver[] = driversResult.rows.map((row) => ({
       name: row.name,
