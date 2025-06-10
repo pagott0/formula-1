@@ -1,19 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/database"
 import type { LoginResponse } from "@/lib/types"
+import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
 
+    // Hash da senha fornecida
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex')
+
     // Verificar se o usuário existe
     const userResult = await query(
       `SELECT id, username, password, user_type, name, constructor_id, driver_id 
        FROM users 
-       WHERE username = $1`,
-      [username]
+       WHERE username = $1 AND password = $2`,
+      [username, hashedPassword]
     )
-
+    
+    console.log("User query result:", userResult.rows.length)
     if (userResult.rows.length === 0) {
       return NextResponse.json(
         {
@@ -25,19 +30,6 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userResult.rows[0]
-
-    // Verificar a senha
-    const passwordMatch = password === user.password
-
-    if (!passwordMatch) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Usuário ou senha incorretos",
-        } as LoginResponse,
-        { status: 401 },
-      )
-    }
 
     // Registrar o login
     await query(
