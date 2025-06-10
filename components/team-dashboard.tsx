@@ -10,7 +10,7 @@ import type { TeamStats, TeamDriver, YearResult, StatusResult } from "@/lib/type
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 
-export default function TeamDashboard() {
+export default function TeamDashboard({ userName }: { userName: string }) {
   const [stats, setStats] = useState<TeamStats | null>(null)
   const [drivers, setDrivers] = useState<TeamDriver[]>([])
   const [results, setResults] = useState<YearResult[]>([])
@@ -115,7 +115,7 @@ export default function TeamDashboard() {
             <CardDescription>Gerencie pilotos e consulte informações</CardDescription>
           </CardHeader>
           <CardContent>
-            <TeamActions />
+            <TeamActions userName={userName} />
           </CardContent>
         </Card>
       </div>

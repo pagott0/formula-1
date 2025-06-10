@@ -6,10 +6,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 interface DashboardHeaderProps {
   userType: string
   username: string
+  userId: string
 }
 
-export default function DashboardHeader({ userType, username }: DashboardHeaderProps) {
-  console.log(userType, username)
+export default function DashboardHeader({ userType, username, userId}: DashboardHeaderProps) {
   const getUserInfo = () => {
     switch (userType) {
       case "admin":
@@ -17,24 +17,28 @@ export default function DashboardHeader({ userType, username }: DashboardHeaderP
           name: "Administrador",
           description: "Acesso completo ao sistema",
           initials: "AD",
+          userId,
         }
       case "team":
         return {
           name: username,
           description: "Escuderia",
           initials: username.charAt(0).toUpperCase() + username.charAt(1).toUpperCase(),
+          userId
         }
       case "driver":
         return {
           name: username,
           description: "Piloto",
           initials: username.charAt(0).toUpperCase() + username.charAt(1).toUpperCase(),
+          userId
         }
       default:
         return {
           name: "Usuário",
           description: "Acesso limitado",
           initials: "US",
+          userId
         }
     }
   }

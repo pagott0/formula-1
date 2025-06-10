@@ -12,6 +12,7 @@ import AuthStorage from "@/utils/auth"
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("")
+  const [userId, setUserId] = useState("")
   const [userType, setUserType] = useState<"admin" | "team" | "driver">("admin")
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export default function DashboardPage() {
     // Verifica se os dados de autenticação existem
     if (authData && authData.user) {
       setUsername(authData.user.name || "Usuário")
+      setUserId(authData.user.id || "")
       setUserType((authData.user as any).user_type as "admin" | "team" | "driver" || "admin")
     } else {
       // Redireciona para a página de login se não houver autenticação
@@ -28,7 +30,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f8]">
-      <DashboardHeader userType={userType} username={username} />
+      <DashboardHeader userType={userType} username={username} userId={userId} />
 
       <div className="container mx-auto py-6 px-4">
         <Tabs defaultValue="dashboard" className="w-full">
@@ -39,7 +41,7 @@ export default function DashboardPage() {
 
           <TabsContent value="dashboard" className="space-y-6">
             {userType === "admin" && <AdminDashboard />}
-            {userType === "team" && <TeamDashboard />}
+            {userType === "team" && <TeamDashboard userName={username} />}
             {userType === "driver" && <DriverDashboard />}
           </TabsContent>
 

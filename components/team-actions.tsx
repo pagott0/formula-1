@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import type { SearchDriverResponse } from "@/lib/types"
 
-export default function TeamActions() {
+export default function TeamActions({ userName }: { userName: string }) {
   const { toast } = useToast()
   const [openSearch, setOpenSearch] = useState(false)
   const [openImport, setOpenImport] = useState(false)
@@ -33,9 +33,10 @@ export default function TeamActions() {
     setIsSearching(true)
 
     try {
-      const response = await fetch(`/api/actions/team/search-driver?name=${encodeURIComponent(searchName)}`)
+      const constructorName = userName
+      const response = await fetch(`/api/actions/team/search-driver?name=${encodeURIComponent(searchName)}&constructorName=${constructorName}`)
       const data = (await response.json()) as SearchDriverResponse
-
+      console.log(data)
       setSearchResults(data.drivers)
 
       if (data.drivers.length === 0) {
@@ -133,15 +134,15 @@ export default function TeamActions() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Consultar Piloto por Nome</DialogTitle>
-              <DialogDescription>Digite o nome do piloto para buscar</DialogDescription>
+              <DialogTitle>Consultar Piloto por Nome/Sobrenome</DialogTitle>
+              <DialogDescription>Digite o nome ou sobrenome para buscar um piloto que já correu pela escuderia</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSearch} className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome do Piloto</Label>
+                <Label htmlFor="name">Nome ou Sobrenome do Piloto</Label>
                 <Input
                   id="name"
-                  placeholder="ex: Lewis"
+                  placeholder="ex: Hamilton"
                   value={searchName}
                   onChange={(e) => setSearchName(e.target.value)}
                   required
