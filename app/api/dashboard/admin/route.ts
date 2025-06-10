@@ -4,15 +4,24 @@ import type { AdminStats, Race, Constructor, Driver, RacePoints } from "@/lib/ty
 
 export async function GET(request: NextRequest) {
   try {
-    // Obter estatísticas gerais
+    // Obter estatísticas gerais - deixamos a query em 2024 pois 2025 nao ha dados
+    // const statsResult = await query(`
+    //   SELECT
+    //   (SELECT COUNT(*) FROM drivers) AS total_drivers,
+    //   (SELECT COUNT(*) FROM constructors) AS total_constructors,
+    //   (SELECT COUNT(DISTINCT year) FROM races) AS total_seasons,
+    //   (SELECT COUNT(*) FROM races WHERE year = date_part('year', CURRENT_DATE)) AS current_year_races,
+    //   (SELECT COUNT(*) FROM races WHERE date < CURRENT_DATE AND year = date_part('year', CURRENT_DATE)) AS completed_races
+    // `)
     const statsResult = await query(`
       SELECT
       (SELECT COUNT(*) FROM drivers) AS total_drivers,
       (SELECT COUNT(*) FROM constructors) AS total_constructors,
       (SELECT COUNT(DISTINCT year) FROM races) AS total_seasons,
-      (SELECT COUNT(*) FROM races WHERE year = date_part('year', CURRENT_DATE)) AS current_year_races,
-      (SELECT COUNT(*) FROM races WHERE date < CURRENT_DATE AND year = date_part('year', CURRENT_DATE)) AS completed_races
+      (SELECT COUNT(*) FROM races WHERE year = 2024) AS current_year_races,
+      (SELECT COUNT(*) FROM races WHERE date < CURRENT_DATE AND year = 2024) AS completed_races
     `)
+
 
     const stats: AdminStats = {
       totalDrivers: Number.parseInt(statsResult.rows[0].total_drivers),
