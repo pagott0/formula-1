@@ -73,6 +73,12 @@ class AuthStorage {
     const auth = this.getAuth();
     return auth?.user || null;
   }
+
+  // Get constructor name
+  static getConstructorName(): string | null {
+    const user = this.getUser();
+    return user?.name?.toLowerCase() || null;
+  }
 }
 
 export default AuthStorage;
