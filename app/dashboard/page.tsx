@@ -9,6 +9,9 @@ import DriverDashboard from "@/components/driver-dashboard"
 import DashboardHeader from "@/components/dashboard-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AuthStorage from "@/utils/auth"
+import { ConstructorRacesReport } from "@/lib/types"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("")
@@ -74,6 +77,33 @@ export default function DashboardPage() {
 }
 
 function AdminReports() {
+  const { toast } = useToast()
+  const [reportData, setReportData] = useState<ConstructorRacesReport[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleGenerateReport3 = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch("/api/reports/admin/constructors-races")
+      const responseJson: {
+        data: ConstructorRacesReport[]
+      } = await response.json()
+      setReportData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleHideReport = () => {
+    setReportData([])
+  }
+  
   return (
     <div className="grid gap-6">
       <ReportCard
@@ -84,10 +114,43 @@ function AdminReports() {
         title="Relatório 2: Aeroportos próximos a cidades"
         description="Apresenta aeroportos brasileiros a até 100 Km de uma cidade especificada."
       />
-      <ReportCard
-        title="Relatório 3: Escuderias e corridas"
-        description="Lista todas as escuderias cadastradas com a quantidade de pilotos e detalhes sobre corridas."
-      />
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 3: Escuderias e corridas</h3>
+        <p className="text-gray-600 mb-4">Lista todas as escuderias cadastradas com a quantidade de pilotos e detalhes sobre corridas.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport3} loading={isLoading}>Gerar Relatório</Button>
+          {reportData.length > 0 && (
+            <Button onClick={handleHideReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {reportData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Escuderia</TableHead>
+                    <TableHead>Pilotos</TableHead>
+                    <TableHead>Corridas</TableHead>
+                    <TableHead>Vitórias</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reportData.map((constructor, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{constructor.name}</TableCell>
+                      <TableCell>{constructor.drivers}</TableCell>
+                      <TableCell>{constructor.races}</TableCell>
+                      <TableCell>{constructor.wins}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -122,20 +185,30 @@ function DriverReports() {
   )
 }
 
-function ReportCard({ title, description }: { title: string; description: string }) {
+function ReportCard({ title, description, onClick }: { title: string; description: string; onClick?: () => void }) {
   return (
     <div className="border rounded-lg p-6 bg-white shadow-sm">
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-600 mb-4">{description}</p>
-      <Button>Gerar Relatório</Button>
+      <Button onClick={onClick} loading={false} variant="default">Gerar Relatório</Button>
     </div>
   )
 }
 
-function Button({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+function Button({ children, onClick, loading, variant = "default" }: { children: React.ReactNode; onClick?: () => void; loading: boolean; variant?: "default" | "outline" }) {
+  const baseClasses = "px-4 py-2 rounded-md font-medium"
+  const variantClasses = {
+    default: "bg-[#e10600] hover:bg-[#b30500] text-white",
+    outline: "border border-[#e10600] text-[#e10600] hover:bg-[#e10600] hover:text-white"
+  }
+
   return (
-    <button onClick={onClick} className="bg-[#e10600] hover:bg-[#b30500] text-white px-4 py-2 rounded-md font-medium">
-      {children}
+    <button 
+      onClick={onClick} 
+      className={`${baseClasses} ${variantClasses[variant]}`} 
+      disabled={loading}
+    >
+      {loading ? "Gerando..." : children}
     </button>
   )
 }

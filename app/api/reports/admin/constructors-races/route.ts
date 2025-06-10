@@ -26,8 +26,6 @@ export async function GET(request: NextRequest) {
     }))
 
     return NextResponse.json({
-      title: "Escuderias e corridas",
-      description: "Lista todas as escuderias cadastradas com a quantidade de pilotos e detalhes sobre corridas.",
       data: constructorsReports,
     })
   } catch (error) {
