@@ -1,10 +1,12 @@
 import LoginForm from "@/components/login-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import ClientSideToastContainer from "@/components/toast"
 import Image from "next/image"
 
 export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
+      <ClientSideToastContainer />
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <div className="relative w-20 h-20 mb-4">

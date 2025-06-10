@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-toastify"
 import AuthStorage from "@/utils/auth"
 
 export default function LoginForm() {
@@ -15,7 +15,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,10 +35,7 @@ export default function LoginForm() {
       const data = await response.json()
 
       if (response.ok) {
-        toast({
-          title: "Login bem-sucedido",
-          description: data.message || "Bem-vindo!",
-        })
+        toast.success('Login realizado com sucesso!')
         const authData = {
           token: data.token,
           user: data.user,
@@ -49,18 +45,10 @@ export default function LoginForm() {
         AuthStorage.setAuth(authData)
         router.push(`/dashboard`)
       } else {
-        toast({
-          title: "Erro de autenticação",
-          description: data.message || "Usuário ou senha incorretos",
-          variant: "destructive",
-        })
+        toast.error('Usuário ou senha incorretos')
       }
     } catch (error) {
-      toast({
-        title: "Erro de conexão",
-        description: "Não foi possível conectar ao servidor",
-        variant: "destructive",
-      })
+      toast.error('Erro ao fazer login. Tente novamente mais tarde.')
     } finally {
       setIsLoading(false)
     }
