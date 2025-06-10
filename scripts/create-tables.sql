@@ -60,10 +60,10 @@ CREATE TABLE IF NOT EXISTS driver_constructor (
 CREATE OR REPLACE FUNCTION create_admin_user()
 RETURNS VOID AS $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin') THEN
-        INSERT INTO users (username, password, user_type, name)
-        VALUES ('admin', 'admin', 'admin', 'Administrador');
-    END IF;
+  IF NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin') THEN
+    INSERT INTO users (username, password, user_type, name)
+    VALUES ('admin', encode(digest('admin', 'sha256'), 'hex'), 'admin', 'Administrador');
+  END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -71,15 +71,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION create_constructor_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO users (username, password, user_type, name, constructor_id)
-    VALUES (
-        LOWER(NEW.ref) || '_c',
-        'escuderia',
-        'team',
-        NEW.name,
-        NEW.id
-    );
-    RETURN NEW;
+  INSERT INTO users (username, password, user_type, name, constructor_id)
+  VALUES (
+    LOWER(NEW.ref) || '_c',
+    encode(digest('escuderia', 'sha256'), 'hex'),
+    'team',
+    NEW.name,
+    NEW.id
+  );
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -87,15 +87,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION create_driver_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO users (username, password, user_type, name, driver_id)
-    VALUES (
-        LOWER(NEW.ref) || '_d',
-        'piloto',
-        'driver',
-        CONCAT(NEW.forename, ' ', NEW.surname),
-        NEW.id
-    );
-    RETURN NEW;
+  INSERT INTO users (username, password, user_type, name, driver_id)
+  VALUES (
+    LOWER(NEW.ref) || '_d',
+    encode(digest('piloto', 'sha256'), 'hex'),
+    'driver',
+    CONCAT(NEW.forename, ' ', NEW.surname),
+    NEW.id
+  );
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
