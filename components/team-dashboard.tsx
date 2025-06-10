@@ -98,7 +98,7 @@ export default function TeamDashboard() {
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {statusData.map((entry, index) => (
+                    {statusData?.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -155,15 +155,15 @@ export default function TeamDashboard() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-2">Ano</th>
-                  <th className="text-left p-2">Posição no Campeonato</th>
+                  <th className="text-left p-2">Vitórias</th>
                   <th className="text-left p-2">Pontos</th>
                 </tr>
               </thead>
               <tbody>
-                {results.map((result, index) => (
+                {results?.map((result, index) => (
                   <tr key={index} className="border-b">
                     <td className="p-2">{result.year}</td>
-                    <td className="p-2">{result.position}º</td>
+                    <td className="p-2">{result.wins}º</td>
                     <td className="p-2">{result.points}</td>
                   </tr>
                 ))}

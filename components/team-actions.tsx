@@ -167,7 +167,7 @@ export default function TeamActions() {
                       </tr>
                     </thead>
                     <tbody>
-                      {searchResults.map((driver) => (
+                      {searchResults?.map((driver) => (
                         <tr key={driver.id} className="border-b">
                           <td className="p-2">{driver.name}</td>
                           <td className="p-2">{driver.nationality}</td>

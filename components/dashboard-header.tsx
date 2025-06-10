@@ -9,6 +9,7 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ userType, username }: DashboardHeaderProps) {
+  console.log(userType, username)
   const getUserInfo = () => {
     switch (userType) {
       case "admin":
@@ -19,15 +20,15 @@ export default function DashboardHeader({ userType, username }: DashboardHeaderP
         }
       case "team":
         return {
-          name: "McLaren Racing",
-          description: "Escuderia - 2 pilotos ativos",
-          initials: "MC",
+          name: username,
+          description: "Escuderia",
+          initials: username.charAt(0).toUpperCase() + username.charAt(1).toUpperCase(),
         }
       case "driver":
         return {
-          name: "Lewis Hamilton",
-          description: "Piloto - Mercedes AMG F1",
-          initials: "LH",
+          name: username,
+          description: "Piloto",
+          initials: username.charAt(0).toUpperCase() + username.charAt(1).toUpperCase(),
         }
       default:
         return {
