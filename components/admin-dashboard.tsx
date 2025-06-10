@@ -9,7 +9,7 @@ import Loading from "@/components/loading"
 import AdminActions from "@/components/admin-actions"
 
 export default function AdminDashboard() {
-  const [raceData, setRaceData] = useState<Array<{ name: string; laps: number; time: string }>>([])
+  const [raceData, setRaceData] = useState<Array<{ name: string; laps: number | null; time: string | { minutes: number; seconds: number; milliseconds: number }; date: Date; circuit: string }>>([])
   const [teamData, setTeamData] = useState<Array<{ name: string; points: number }>>([])
   const [driverData, setDriverData] = useState<Array<{ name: string; points: number }>>([])
   const [chartData, setChartData] = useState<Array<{ name: string; RedBull: number; Ferrari: number; McLaren: number; Mercedes: number }>>([])
@@ -28,11 +28,14 @@ export default function AdminDashboard() {
     currentYearRaces: 0,
     completedRaces: 0,
   })
+  // const today = new Date().getFullYear()
+  const today = '2024' // Hardcoded for demo purposes, replace with new Date().getFullYear() in production
 
   useEffect(() => {
     fetch('/api/dashboard/admin')
       .then(response => response.json())
       .then(data => {
+        console.log('Fetched data:', data)
         setStats(data.stats)
         setRaceData(data.races)
         setTeamData(data.constructors)
@@ -84,7 +87,7 @@ export default function AdminDashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Corridas em {new Date().getFullYear()}</CardTitle>
+            <CardTitle className="text-sm font-medium">Corridas em {today}</CardTitle>
             <Flag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -97,7 +100,7 @@ export default function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Pontuação por Corrida (2024)</CardTitle>
+            <CardTitle>Pontuação por Corrida ({today})</CardTitle>
             <CardDescription>Distribuição de pontos entre as principais equipes</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
@@ -130,27 +133,32 @@ export default function AdminDashboard() {
 
       <Tabs defaultValue="races">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="races">Corridas (2024)</TabsTrigger>
-          <TabsTrigger value="teams">Escuderias (2024)</TabsTrigger>
-          <TabsTrigger value="drivers">Pilotos (2024)</TabsTrigger>
+          <TabsTrigger value="races">Corridas ({today})</TabsTrigger>
+          <TabsTrigger value="teams">Escuderias ({today})</TabsTrigger>
+          <TabsTrigger value="drivers">Pilotos ({today})</TabsTrigger>
         </TabsList>
-        <TabsContent value="races" className="p-4 border rounded-md mt-2 bg-white">
+        <TabsContent value="races" className="p-2 border rounded-md mt-2 bg-white">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Nome da Corrida</th>
-                  <th className="text-left p-2">Total de Voltas</th>
-                  <th className="text-left p-2">Tempo Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {raceData.map((race, index) => (
-                  <tr key={index} className="border-b">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Nome da Corrida</th>
+                    <th className="text-left p-2">Total de Voltas</th>
+                    <th className="text-left p-2">Tempo Total</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {raceData.map((race, index) => (
+                    <tr key={index} className="border-b">
                     <td className="p-2">{race.name}</td>
                     <td className="p-2">{race.laps}</td>
-                    <td className="p-2">{race.time}</td>
-                  </tr>
+                    <td className="p-2">
+                      {typeof race.time === 'string' 
+                      ? race.time 
+                      : `${race.time.minutes}:${race.time.seconds.toString().padStart(2, '0')}.${race.time.milliseconds.toString().padStart(3, '0')}`
+                      }
+                    </td>
+                    </tr>
                 ))}
               </tbody>
             </table>
