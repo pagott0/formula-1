@@ -7,6 +7,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { Trophy, Users, Calendar } from "lucide-react"
 import TeamActions from "@/components/team-actions"
 import type { TeamStats, TeamDriver, YearResult, StatusResult } from "@/lib/types"
+import AuthStorage from "@/utils/auth"
+import Loading from "@/components/loading"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 
@@ -15,15 +17,15 @@ export default function TeamDashboard({ userName }: { userName: string }) {
   const [drivers, setDrivers] = useState<TeamDriver[]>([])
   const [results, setResults] = useState<YearResult[]>([])
   const [statusData, setStatusData] = useState<StatusResult[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Em um cenário real, o constructorId viria da autenticação
-        const constructorId = 1 // McLaren
-        const response = await fetch(`/api/dashboard/team?constructorId=${constructorId}`)
+        setLoading(true)
+        const response = await fetch(`/api/dashboard/team?constructorName=${AuthStorage.getConstructorName()}`)
         const data = await response.json()
+        console.log(data)
 
         setStats(data.stats)
         setDrivers(data.drivers)
@@ -45,6 +47,11 @@ export default function TeamDashboard({ userName }: { userName: string }) {
 
   return (
     <div className="space-y-8">
+      {
+        loading ? (
+          <Loading />
+        ) : (
+          <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -137,7 +144,7 @@ export default function TeamDashboard({ userName }: { userName: string }) {
                 </tr>
               </thead>
               <tbody>
-                {drivers.map((driver, index) => (
+                {drivers?.map((driver, index) => (
                   <tr key={index} className="border-b">
                     <td className="p-2">{driver.name}</td>
                     <td className="p-2">{driver.races}</td>
@@ -172,6 +179,9 @@ export default function TeamDashboard({ userName }: { userName: string }) {
           </div>
         </TabsContent>
       </Tabs>
+      </>
+        )
+      }
     </div>
   )
 }

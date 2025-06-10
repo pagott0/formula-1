@@ -4,7 +4,9 @@ import type { TeamStats, TeamDriver, YearResult, StatusResult } from "@/lib/type
 
 export async function GET(request: NextRequest) {
   try {
-    const constructorId = request.nextUrl.searchParams.get("constructorId")
+    const constructorName = request.nextUrl.searchParams.get("constructorName")
+    const constructorIdResult = await query(`SELECT id FROM constructors WHERE LOWER(name) = LOWER($1)`, [constructorName])
+    const constructorId = constructorIdResult.rows[0].id
 
     if (!constructorId) {
       return NextResponse.json({ error: "ID da escuderia não fornecido" }, { status: 400 })
