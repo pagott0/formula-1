@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       for (const record of records) {
         try {
           // Verificar se o piloto já existe
-          const checkQuery = `SELECT id FROM drivers WHERE driverRef = $1`
+          const checkQuery = `SELECT id FROM drivers WHERE ref = $1`
           const checkResult = await client.query(checkQuery, [record.driverRef])
 
           let driverId
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
           } else {
             // Inserir novo piloto
             const insertQuery = `
-              INSERT INTO drivers (driverRef, number, code, forename, surname, dob, nationality)
+              INSERT INTO drivers (ref, number, code, forename, surname, dob, nationality)
               VALUES ($1, $2, $3, $4, $5, $6, $7)
               RETURNING id
             `
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         } catch (err) {
           errors.push({
             record: record.driverRef,
-            error: err.message,
+            error: err instanceof Error ? err.message : "Erro desconhecido",
           })
         }
       }

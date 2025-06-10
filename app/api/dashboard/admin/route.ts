@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
         (SELECT COUNT(*) FROM drivers) AS total_drivers,
         (SELECT COUNT(*) FROM constructors) AS total_constructors,
         (SELECT COUNT(DISTINCT year) FROM races) AS total_seasons,
-        (SELECT COUNT(*) FROM races WHERE EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)) AS current_year_races,
-        (SELECT COUNT(*) FROM races WHERE date < CURRENT_DATE AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)) AS completed_races
+        (SELECT COUNT(*) FROM races WHERE year = EXTRACT(YEAR FROM CURRENT_DATE)) AS current_year_races,
+        (SELECT COUNT(*) FROM races WHERE date < CURRENT_DATE AND year = EXTRACT(YEAR FROM CURRENT_DATE)) AS completed_races
     `)
 
     const stats: AdminStats = {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         c.name AS circuit
       FROM races r
       JOIN circuits c ON r.circuit_id = c.id
-      WHERE EXTRACT(YEAR FROM r.date) = EXTRACT(YEAR FROM CURRENT_DATE)
+      WHERE r.year = EXTRACT(YEAR FROM CURRENT_DATE)
       ORDER BY r.date
       LIMIT 5
     `)
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       FROM constructors c
       JOIN results r ON r.constructor_id = c.id
       JOIN races ra ON r.race_id = ra.id
-      WHERE EXTRACT(YEAR FROM ra.date) = EXTRACT(YEAR FROM CURRENT_DATE)
+      WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
       GROUP BY c.name, c.nationality
       ORDER BY points DESC
       LIMIT 5
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
       JOIN results r ON r.driver_id = d.id
       JOIN constructors c ON r.constructor_id = c.id
       JOIN races ra ON r.race_id = ra.id
-      WHERE EXTRACT(YEAR FROM ra.date) = EXTRACT(YEAR FROM CURRENT_DATE)
+      WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
       GROUP BY d.forename, d.surname, c.name
       ORDER BY points DESC
       LIMIT 5
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
         FROM constructors c
         JOIN results r ON r.constructor_id = c.id
         JOIN races ra ON r.race_id = ra.id
-        WHERE EXTRACT(YEAR FROM ra.date) = EXTRACT(YEAR FROM CURRENT_DATE)
+        WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
         GROUP BY c.id, c.name
         ORDER BY SUM(r.points) DESC
         LIMIT 4
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       FROM races ra
       JOIN results r ON r.race_id = ra.id
       JOIN top_constructors tc ON r.constructor_id = tc.id
-      WHERE EXTRACT(YEAR FROM ra.date) = EXTRACT(YEAR FROM CURRENT_DATE)
+      WHERE ra.year = EXTRACT(YEAR FROM CURRENT_DATE)
       GROUP BY ra.name, tc.name
       ORDER BY ra.date
     `)

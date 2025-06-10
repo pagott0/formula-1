@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS idx_results_position ON results(position);
 
 -- Índices para a tabela races
 -- Melhora consultas por ano
-CREATE INDEX IF NOT EXISTS idx_races_year ON races((EXTRACT(YEAR FROM date)));
+CREATE INDEX IF NOT EXISTS idx_races_year ON races(year);
 
 -- Melhora consultas por circuito
 CREATE INDEX IF NOT EXISTS idx_races_circuit_id ON races(circuit_id);
@@ -43,18 +43,6 @@ CREATE INDEX IF NOT EXISTS idx_driver_constructor_year ON driver_constructor(yea
 CREATE INDEX IF NOT EXISTS idx_driver_constructor_driver ON driver_constructor(driver_id);
 CREATE INDEX IF NOT EXISTS idx_driver_constructor_constructor ON driver_constructor(constructor_id);
 
--- Índices para a tabela airports
--- Melhora consultas geoespaciais
-CREATE INDEX IF NOT EXISTS idx_airports_location ON airports USING gist(
-  ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
-);
-
--- Índices para a tabela cities
--- Melhora consultas geoespaciais
-CREATE INDEX IF NOT EXISTS idx_cities_location ON cities USING gist(
-  ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
-);
-
 -- Índice para busca de pilotos por nome
 CREATE INDEX IF NOT EXISTS idx_drivers_name ON drivers(forename, surname);
 
@@ -75,8 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_team_log_action ON team_log(action);
 
 -- Comentários explicativos nos índices
 COMMENT ON INDEX idx_results_driver_id IS 'Otimiza consultas de resultados por piloto';
-COMMENT ON INDEX idx_results_constructor_id IS '
-Otimiza consultas de resultados por escuderia';
+COMMENT ON INDEX idx_results_constructor_id IS 'Otimiza consultas de resultados por escuderia';
 COMMENT ON INDEX idx_results_status_id IS 'Otimiza consultas de resultados por status';
 COMMENT ON INDEX idx_results_position IS 'Otimiza consultas de posição (vitórias, pódios)';
 COMMENT ON INDEX idx_races_year IS 'Otimiza consultas por ano';
@@ -89,7 +76,5 @@ COMMENT ON INDEX idx_users_driver_id IS 'Otimiza consultas de usuários por pilo
 COMMENT ON INDEX idx_driver_constructor_year IS 'Otimiza consultas de associação entre pilotos e escuderias por ano';
 COMMENT ON INDEX idx_driver_constructor_driver IS 'Otimiza consultas de associação por piloto';
 COMMENT ON INDEX idx_driver_constructor_constructor IS 'Otimiza consultas de associação por escuderia';
-COMMENT ON INDEX idx_airports_location IS 'Otimiza consultas geoespaciais de aeroportos';
-COMMENT ON INDEX idx_cities_location IS 'Otimiza consultas geoespaciais de cidades';
 COMMENT ON INDEX idx_drivers_name IS 'Otimiza busca de pilotos por nome';
 COMMENT ON INDEX idx_constructors_name IS 'Otimiza busca de escuderias por nome';

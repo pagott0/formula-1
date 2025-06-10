@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         CONCAT(d.forename, ' ', d.surname) AS name,
         (SELECT COUNT(*) FROM results r WHERE r.driver_id = d.id AND r.position = 1) AS total_wins,
         COUNT(DISTINCT r.race_id) AS total_races,
-        CONCAT(MIN(EXTRACT(YEAR FROM ra.date)), ' - ', MAX(EXTRACT(YEAR FROM ra.date))) AS period
+        CONCAT(MIN(ra.year), ' - ', MAX(ra.year)) AS period
       FROM drivers d
       JOIN results r ON r.driver_id = d.id
       JOIN races ra ON r.race_id = ra.id
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     // Obter carreira por ano
     const careerQuery = `
       SELECT 
-        EXTRACT(YEAR FROM ra.date) AS year,
+        ra.year,
         SUM(r.points) AS points,
         SUM(CASE WHEN r.position = 1 THEN 1 ELSE 0 END) AS wins,
         COUNT(DISTINCT ra.id) AS races
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
       JOIN results r ON r.driver_id = d.id
       JOIN races ra ON r.race_id = ra.id
       WHERE d.id = $1
-      GROUP BY EXTRACT(YEAR FROM ra.date)
-      ORDER BY year
+      GROUP BY ra.year
+      ORDER BY ra.year
     `
 
     const careerResult = await query(careerQuery, [driverId])
@@ -64,51 +64,32 @@ export async function GET(request: NextRequest) {
     const circuitsQuery = `
       SELECT 
         c.name AS circuit,
-        SUM(r.points) AS points,
+        COUNT(DISTINCT r.race_id) AS races,
         SUM(CASE WHEN r.position = 1 THEN 1 ELSE 0 END) AS wins,
-        COUNT(DISTINCT ra.id) AS races
+        AVG(r.position) AS avg_position
       FROM drivers d
       JOIN results r ON r.driver_id = d.id
       JOIN races ra ON r.race_id = ra.id
       JOIN circuits c ON ra.circuit_id = c.id
       WHERE d.id = $1
       GROUP BY c.name
-      ORDER BY wins DESC, points DESC
+      HAVING COUNT(DISTINCT r.race_id) >= 3
+      ORDER BY wins DESC, avg_position ASC
       LIMIT 5
     `
 
     const circuitsResult = await query(circuitsQuery, [driverId])
     const circuits: CircuitPerformance[] = circuitsResult.rows.map((row) => ({
       circuit: row.circuit,
-      points: Number.parseFloat(row.points),
-      wins: Number.parseInt(row.wins),
       races: Number.parseInt(row.races),
-    }))
-
-    // Obter pontos por ano para o gráfico
-    const pointsQuery = `
-      SELECT 
-        EXTRACT(YEAR FROM ra.date) AS year,
-        SUM(r.points) AS points
-      FROM drivers d
-      JOIN results r ON r.driver_id = d.id
-      JOIN races ra ON r.race_id = ra.id
-      WHERE d.id = $1
-      GROUP BY EXTRACT(YEAR FROM ra.date)
-      ORDER BY year
-    `
-
-    const pointsResult = await query(pointsQuery, [driverId])
-    const pointsByYear = pointsResult.rows.map((row) => ({
-      year: Number.parseInt(row.year),
-      points: Number.parseFloat(row.points),
+      wins: Number.parseInt(row.wins),
+      avgPosition: Number.parseFloat(row.avg_position),
     }))
 
     return NextResponse.json({
       stats,
       career,
       circuits,
-      pointsByYear,
     })
   } catch (error) {
     console.error("Driver dashboard error:", error)

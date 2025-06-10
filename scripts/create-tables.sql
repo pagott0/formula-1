@@ -56,27 +56,6 @@ CREATE TABLE IF NOT EXISTS driver_constructor (
     PRIMARY KEY (driver_id, constructor_id, year)
 );
 
--- Tabela de aeroportos (para o relatório de aeroportos próximos)
-CREATE TABLE IF NOT EXISTS airports (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    city VARCHAR(50) NOT NULL,
-    country VARCHAR(50) NOT NULL,
-    iata_code CHAR(3),
-    icao_code CHAR(4),
-    latitude DECIMAL(10, 6) NOT NULL,
-    longitude DECIMAL(10, 6) NOT NULL
-);
-
--- Tabela de cidades (para o relatório de aeroportos próximos)
-CREATE TABLE IF NOT EXISTS cities (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    country VARCHAR(50) NOT NULL,
-    latitude DECIMAL(10, 6) NOT NULL,
-    longitude DECIMAL(10, 6) NOT NULL
-);
-
 -- Função para criar usuário admin automaticamente
 CREATE OR REPLACE FUNCTION create_admin_user()
 RETURNS VOID AS $$
@@ -94,7 +73,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO users (username, password, user_type, name, constructor_id)
     VALUES (
-        LOWER(NEW.constructorRef) || '_c',
+        LOWER(NEW.ref) || '_c',
         'escuderia',
         'team',
         NEW.name,
@@ -110,7 +89,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO users (username, password, user_type, name, driver_id)
     VALUES (
-        LOWER(NEW.driverRef) || '_d',
+        LOWER(NEW.ref) || '_d',
         'piloto',
         'driver',
         CONCAT(NEW.forename, ' ', NEW.surname),
@@ -145,7 +124,7 @@ BEGIN
     FROM results r
     JOIN races ra ON r.race_id = ra.id
     WHERE r.constructor_id = calculate_constructor_points.constructor_id
-    AND EXTRACT(YEAR FROM ra.date) = calculate_constructor_points.year;
+    AND ra.year = calculate_constructor_points.year;
     
     RETURN total_points;
 END;
@@ -162,7 +141,7 @@ BEGIN
     FROM results r
     JOIN races ra ON r.race_id = ra.id
     WHERE r.driver_id = calculate_driver_points.driver_id
-    AND EXTRACT(YEAR FROM ra.date) = calculate_driver_points.year;
+    AND ra.year = calculate_driver_points.year;
     
     RETURN total_points;
 END;
@@ -181,7 +160,7 @@ BEGIN
         FROM constructors c
         LEFT JOIN results r ON r.constructor_id = c.id
         LEFT JOIN races ra ON r.race_id = ra.id
-        WHERE EXTRACT(YEAR FROM ra.date) = calculate_constructor_position.year
+        WHERE ra.year = calculate_constructor_position.year
         GROUP BY c.id
         ORDER BY points DESC
     )
@@ -207,7 +186,7 @@ BEGIN
         FROM drivers d
         LEFT JOIN results r ON r.driver_id = d.id
         LEFT JOIN races ra ON r.race_id = ra.id
-        WHERE EXTRACT(YEAR FROM ra.date) = calculate_driver_position.year
+        WHERE ra.year = calculate_driver_position.year
         GROUP BY d.id
         ORDER BY points DESC
     )

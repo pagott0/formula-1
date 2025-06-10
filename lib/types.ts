@@ -80,13 +80,14 @@ export interface TeamDriver {
 
 export interface YearResult {
   year: number
-  position: number
   points: number
+  races: number
+  wins: number
 }
 
 export interface StatusResult {
-  name: string
-  value: number
+  status: string
+  count: number
 }
 
 // Tipos para o dashboard do piloto
@@ -106,9 +107,9 @@ export interface CareerYear {
 
 export interface CircuitPerformance {
   circuit: string
-  points: number
-  wins: number
   races: number
+  wins: number
+  avgPosition: number
 }
 
 // Tipos para relatórios

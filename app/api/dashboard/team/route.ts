@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         c.name,
         (SELECT COUNT(*) FROM results r WHERE r.constructor_id = c.id AND r.position = 1) AS total_wins,
         (SELECT COUNT(DISTINCT driver_id) FROM results r WHERE r.constructor_id = c.id) AS total_drivers,
-        CONCAT(MIN(EXTRACT(YEAR FROM ra.date)), ' - ', MAX(EXTRACT(YEAR FROM ra.date))) AS period
+        CONCAT(MIN(ra.year), ' - ', MAX(ra.year)) AS period
       FROM constructors c
       JOIN results r ON r.constructor_id = c.id
       JOIN races ra ON r.race_id = ra.id
@@ -61,51 +61,51 @@ export async function GET(request: NextRequest) {
     }))
 
     // Obter resultados por ano
-    const resultsQuery = `
+    const yearResultsQuery = `
       SELECT 
-        EXTRACT(YEAR FROM ra.date) AS year,
-        RANK() OVER (PARTITION BY EXTRACT(YEAR FROM ra.date) ORDER BY SUM(r.points) DESC) AS position,
-        SUM(r.points) AS points
-      FROM constructors c
-      JOIN results r ON r.constructor_id = c.id
-      JOIN races ra ON r.race_id = ra.id
-      WHERE c.id = $1
-      GROUP BY EXTRACT(YEAR FROM ra.date)
-      ORDER BY year DESC
+        ra.year,
+        SUM(r.points) AS points,
+        COUNT(DISTINCT ra.id) AS races,
+        SUM(CASE WHEN r.position = 1 THEN 1 ELSE 0 END) AS wins
+      FROM races ra
+      JOIN results r ON r.race_id = ra.id
+      WHERE r.constructor_id = $1
+      GROUP BY ra.year
+      ORDER BY ra.year DESC
       LIMIT 5
     `
 
-    const resultsResult = await query(resultsQuery, [constructorId])
-    const results: YearResult[] = resultsResult.rows.map((row) => ({
+    const yearResultsResult = await query(yearResultsQuery, [constructorId])
+    const yearResults: YearResult[] = yearResultsResult.rows.map((row) => ({
       year: Number.parseInt(row.year),
-      position: Number.parseInt(row.position),
       points: Number.parseFloat(row.points),
+      races: Number.parseInt(row.races),
+      wins: Number.parseInt(row.wins),
     }))
 
-    // Obter status das corridas
-    const statusQuery = `
+    // Obter resultados por status
+    const statusResultsQuery = `
       SELECT 
-        s.status AS name,
-        COUNT(*) AS value
+        s.status,
+        COUNT(*) AS count
       FROM results r
       JOIN status s ON r.status_id = s.id
       WHERE r.constructor_id = $1
       GROUP BY s.status
-      ORDER BY value DESC
-      LIMIT 4
+      ORDER BY count DESC
     `
 
-    const statusResult = await query(statusQuery, [constructorId])
-    const status: StatusResult[] = statusResult.rows.map((row) => ({
-      name: row.name,
-      value: Number.parseInt(row.value),
+    const statusResultsResult = await query(statusResultsQuery, [constructorId])
+    const statusResults: StatusResult[] = statusResultsResult.rows.map((row) => ({
+      status: row.status,
+      count: Number.parseInt(row.count),
     }))
 
     return NextResponse.json({
       stats,
       drivers,
-      results,
-      status,
+      yearResults,
+      statusResults,
     })
   } catch (error) {
     console.error("Team dashboard error:", error)

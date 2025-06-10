@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
       (await request.json()) as CreateDriverRequest
 
     // Verificar se já existe um piloto com o mesmo driverRef
-    const checkQuery = `SELECT id FROM drivers WHERE driverRef = $1`
+    const checkQuery = `SELECT id FROM drivers WHERE ref = $1`
     const checkResult = await query(checkQuery, [driverRef])
 
     if (checkResult.rows.length > 0) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const result = await withTransaction(async (client) => {
       // Inserir na tabela drivers
       const insertQuery = `
-        INSERT INTO drivers (driverRef, number, code, forename, surname, dob, nationality)
+        INSERT INTO drivers (ref, number, code, forename, surname, dob, nationality)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id
       `
