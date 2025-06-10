@@ -2,29 +2,29 @@
 
 import type React from "react"
 
-import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import AdminDashboard from "@/components/admin-dashboard"
 import TeamDashboard from "@/components/team-dashboard"
 import DriverDashboard from "@/components/driver-dashboard"
 import DashboardHeader from "@/components/dashboard-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import AuthStorage from "@/utils/auth"
 
 export default function DashboardPage() {
-  const searchParams = useSearchParams()
-  const userType = searchParams.get("userType") || "admin"
   const [username, setUsername] = useState("")
+  const [userType, setUserType] = useState<"admin" | "team" | "driver">("admin")
 
   useEffect(() => {
-    // Simulação de dados do usuário - em um cenário real, isso viria do backend
-    if (userType === "admin") {
-      setUsername("admin")
-    } else if (userType === "team") {
-      setUsername("mclaren_c")
-    } else if (userType === "driver") {
-      setUsername("hamilton_d")
+    const authData = AuthStorage.getAuth()
+    // Verifica se os dados de autenticação existem
+    if (authData && authData.user) {
+      setUsername(authData.user.name || "Usuário")
+      setUserType((authData.user as any).user_type as "admin" | "team" | "driver" || "admin")
+    } else {
+      // Redireciona para a página de login se não houver autenticação
+      window.location.href = "/"
     }
-  }, [userType])
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#f8f8f8]">
