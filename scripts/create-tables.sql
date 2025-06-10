@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS driver_constructor (
     PRIMARY KEY (driver_id, constructor_id, year)
 );
 
+-- Extensão para criptografia
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Função para criar usuário admin automaticamente
 CREATE OR REPLACE FUNCTION create_admin_user()
 RETURNS VOID AS $$
