@@ -3,7 +3,7 @@ import { Pool } from 'pg'
 // Create a pooled connection
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: true
 })
 
 // Função para executar queries SQL
