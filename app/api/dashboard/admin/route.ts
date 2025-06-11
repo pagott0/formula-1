@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
              FROM results res3 
              WHERE res3.race_id = r.id 
                AND res3.position = 1 
-             LIMIT 1) AS race_time
+             ) AS race_time
           FROM races r
           JOIN circuits c ON r.circuit_id = c.id
           LEFT JOIN results res ON res.race_id = r.id
