@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useEffect, useState } from "react"
 
 interface DashboardHeaderProps {
   userType: string
@@ -10,6 +11,26 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ userType, username, userId}: DashboardHeaderProps) {
+  const [activeDrivers, setActiveDrivers] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchActiveDrivers = async () => {
+      if (userType === "team") {
+        try {
+          const response = await fetch(`/api/dashboard/team/active-drivers?constructorName=${username}`)
+          const data = await response.json()
+          if (data.activeDrivers !== undefined) {
+            setActiveDrivers(data.activeDrivers)
+          }
+        } catch (error) {
+          console.error("Error fetching active drivers:", error)
+        }
+      }
+    }
+
+    fetchActiveDrivers()
+  }, [userType, username])
+
   const getUserInfo = () => {
     switch (userType) {
       case "admin":
@@ -22,7 +43,7 @@ export default function DashboardHeader({ userType, username, userId}: Dashboard
       case "team":
         return {
           name: username,
-          description: "Escuderia",
+          description: activeDrivers !== null ? `${activeDrivers} piloto${activeDrivers !== 1 ? 's' : ''} ativo${activeDrivers !== 1 ? 's' : ''}` : "Escuderia",
           initials: username.charAt(0).toUpperCase() + username.charAt(1).toUpperCase(),
           userId
         }
