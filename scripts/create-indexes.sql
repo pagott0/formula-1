@@ -78,3 +78,7 @@ COMMENT ON INDEX idx_driver_constructor_driver IS 'Otimiza consultas de associa�
 COMMENT ON INDEX idx_driver_constructor_constructor IS 'Otimiza consultas de associação por escuderia';
 COMMENT ON INDEX idx_drivers_name IS 'Otimiza busca de pilotos por nome';
 COMMENT ON INDEX idx_constructors_name IS 'Otimiza busca de escuderias por nome';
+
+-- Índice para otimizar a consulta de aeroportos próximos
+CREATE INDEX IF NOT EXISTS idx_airports_type_city ON airports (type, city);
+CREATE INDEX IF NOT EXISTS idx_airports_coordinates ON airports (lat_deg, lng_deg);
