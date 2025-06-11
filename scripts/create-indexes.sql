@@ -82,3 +82,29 @@ COMMENT ON INDEX idx_constructors_name IS 'Otimiza busca de escuderias por nome'
 -- Índice para otimizar a consulta de aeroportos próximos
 CREATE INDEX IF NOT EXISTS idx_airports_type_city ON airports (type, city);
 CREATE INDEX IF NOT EXISTS idx_airports_coordinates ON airports (lat_deg, lng_deg);
+
+-- Índices adicionais para melhorar a performance do Relatório 3
+
+-- Índice composto para a tabela results
+-- Otimiza a contagem de vitórias por constructor
+CREATE INDEX IF NOT EXISTS idx_results_constructor_position ON results(constructor_id, position);
+
+-- Índice composto para a tabela results
+-- Otimiza a contagem de corridas por constructor
+CREATE INDEX IF NOT EXISTS idx_results_constructor_race ON results(constructor_id, race_id);
+
+-- Índice composto para a tabela results
+-- Otimiza a contagem de pilotos por constructor
+CREATE INDEX IF NOT EXISTS idx_results_constructor_driver ON results(constructor_id, driver_id);
+
+-- Índice para a tabela results
+-- Otimiza a ordenação por laps
+CREATE INDEX IF NOT EXISTS idx_results_laps ON results(laps);
+
+-- Índice para a tabela results
+-- Otimiza a ordenação por time
+CREATE INDEX IF NOT EXISTS idx_results_time ON results(time);
+
+-- Índice para a tabela results
+-- Otimiza a ordenação por milliseconds
+CREATE INDEX IF NOT EXISTS idx_results_milliseconds ON results(milliseconds);
