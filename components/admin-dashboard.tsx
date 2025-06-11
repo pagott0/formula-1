@@ -97,30 +97,8 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Pontuação por Corrida ({today})</CardTitle>
-            <CardDescription>Distribuição de pontos entre as principais equipes</CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="RedBull" fill="#3671C6" />
-                  <Bar dataKey="Ferrari" fill="#F91536" />
-                  <Bar dataKey="McLaren" fill="#F58020" />
-                  <Bar dataKey="Mercedes" fill="#6CD3BF" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
+      <div className="flex w-full">
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Ações do Administrador</CardTitle>
             <CardDescription>Gerencie escuderias e pilotos</CardDescription>
