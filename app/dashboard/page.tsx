@@ -9,7 +9,7 @@ import DriverDashboard from "@/components/driver-dashboard"
 import DashboardHeader from "@/components/dashboard-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AuthStorage from "@/utils/auth"
-import { ConstructorRacesReport, AirportReport, StatusReport, DriverWinsReport } from "@/lib/types"
+import { ConstructorRacesReport, AirportReport, StatusReport, DriverWinsReport, PointsByYearReport } from "@/lib/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
@@ -430,16 +430,144 @@ function TeamReports() {
 }
 
 function DriverReports() {
+  const { toast } = useToast()
+  const [pointsData, setPointsData] = useState<PointsByYearReport[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [statusData, setStatusData] = useState<StatusReport[]>([])
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+
+  const handleGenerateReport6 = async () => {
+    try {
+      setIsLoading(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.driver_id) {
+        toast({
+          title: "Erro",
+          description: "ID do piloto não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/driver/points-by-year?driverId=${authData.user.driver_id}`)
+      const responseJson: {
+        data: PointsByYearReport[]
+      } = await response.json()
+      setPointsData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGenerateReport7 = async () => {
+    try {
+      setIsLoadingStatus(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.driver_id) {
+        toast({
+          title: "Erro",
+          description: "ID do piloto não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/driver/status-results?driverId=${authData.user.driver_id}`)
+      const responseJson: {
+        data: StatusReport[]
+      } = await response.json()
+      setStatusData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingStatus(false)
+    }
+  }
+
+  const handleHideReport = () => {
+    setPointsData([])
+  }
+
+  const handleHideStatusReport = () => {
+    setStatusData([])
+  }
+
   return (
     <div className="grid gap-6">
-      <ReportCard
-        title="Relatório 6: Pontos por ano"
-        description="Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1."
-      />
-      <ReportCard
-        title="Relatório 7: Resultados por status"
-        description="Lista a quantidade de resultados por cada status nas corridas em que o piloto participou."
-      />
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 6: Pontos por ano</h3>
+        <p className="text-gray-600 mb-4">Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport6} loading={isLoading}>Gerar Relatório</Button>
+          {pointsData.length > 0 && (
+            <Button onClick={handleHideReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {pointsData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ano</TableHead>
+                    <TableHead>Pontos</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pointsData.map((point, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{point.year}</TableCell>
+                      <TableCell>{point.points}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 7: Resultados por status</h3>
+        <p className="text-gray-600 mb-4">Lista a quantidade de resultados por cada status nas corridas em que o piloto participou.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport7} loading={isLoadingStatus}>Gerar Relatório</Button>
+          {statusData.length > 0 && (
+            <Button onClick={handleHideStatusReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {statusData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {statusData.map((status, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{status.status}</TableCell>
+                      <TableCell>{status.count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
