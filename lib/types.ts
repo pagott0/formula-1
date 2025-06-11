@@ -162,6 +162,12 @@ export interface DriverWinsReport {
 export interface PointsByYearReport {
   year: number
   points: number
+  races: {
+    name: string
+    points: number
+    position: number
+    date: string
+  }[]
 }
 
 // Tipos para ações administrativas

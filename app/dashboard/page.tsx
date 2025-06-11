@@ -566,7 +566,7 @@ function DriverReports() {
     <div className="grid gap-6">
       <div className="border rounded-lg p-6 bg-white shadow-sm">
         <h3 className="text-xl font-semibold mb-2">Relatório 6: Pontos por ano</h3>
-        <p className="text-gray-600 mb-4">Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1.</p>
+        <p className="text-gray-600 mb-4">Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1, incluindo detalhes de cada corrida.</p>
         <div className="flex gap-2">
           <Button onClick={handleGenerateReport6} loading={isLoading}>Gerar Relatório</Button>
           {pointsData.length > 0 && (
@@ -575,28 +575,43 @@ function DriverReports() {
         </div>
 
         {pointsData.length > 0 && (
-          <div className="mt-6">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ano</TableHead>
-                    <TableHead>Pontos</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pointsData.map((point, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{point.year}</TableCell>
-                      <TableCell>{point.points}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+          <div className="mt-6 space-y-6">
+            {pointsData.map((yearData, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold">Ano {yearData.year}</h4>
+                  <div className="text-sm text-gray-600">
+                    Total de pontos: <span className="font-semibold">{yearData.points}</span>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Corrida</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Posição</TableHead>
+                        <TableHead>Pontos</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {yearData.races.map((race, raceIndex) => (
+                        <TableRow key={raceIndex}>
+                          <TableCell>{race.name}</TableCell>
+                          <TableCell>{new Date(race.date).toLocaleDateString('pt-BR')}</TableCell>
+                          <TableCell>{race.position}º</TableCell>
+                          <TableCell>{race.points}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
+
       <div className="border rounded-lg p-6 bg-white shadow-sm">
         <h3 className="text-xl font-semibold mb-2">Relatório 7: Resultados por status</h3>
         <p className="text-gray-600 mb-4">Lista a quantidade de resultados por cada status nas corridas em que o piloto participou.</p>

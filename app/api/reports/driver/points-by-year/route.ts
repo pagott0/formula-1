@@ -10,15 +10,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "ID do piloto não fornecido" }, { status: 400 })
     }
 
-    // Relatório 6: Pontos por ano
+    // Relatório 6: Pontos por ano com detalhes das corridas
     const pointsQuery = `
+      WITH yearly_points AS (
+        SELECT 
+          EXTRACT(YEAR FROM ra.date) AS year,
+          SUM(r.points) AS total_points,
+          json_agg(
+            json_build_object(
+              'name', ra.name,
+              'points', r.points,
+              'position', r.position,
+              'date', ra.date
+            ) ORDER BY ra.date
+          ) as races
+        FROM results r
+        JOIN races ra ON r.race_id = ra.id
+        WHERE r.driver_id = $1
+        GROUP BY EXTRACT(YEAR FROM ra.date)
+      )
       SELECT 
-        EXTRACT(YEAR FROM ra.date) AS year,
-        SUM(r.points) AS points
-      FROM results r
-      JOIN races ra ON r.race_id = ra.id
-      WHERE r.driver_id = $1
-      GROUP BY EXTRACT(YEAR FROM ra.date)
+        year,
+        total_points as points,
+        races
+      FROM yearly_points
       ORDER BY year
     `
 
@@ -26,6 +41,12 @@ export async function GET(request: NextRequest) {
     const pointsReports: PointsByYearReport[] = pointsResult.rows.map((row) => ({
       year: Number.parseInt(row.year),
       points: Number.parseFloat(row.points),
+      races: row.races.map((race: any) => ({
+        name: race.name,
+        points: Number.parseFloat(race.points),
+        position: Number.parseInt(race.position),
+        date: race.date
+      }))
     }))
 
     // Obter o nome do piloto
@@ -35,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       title: `Pontos por ano - ${driverName}`,
-      description: "Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1.",
+      description: "Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1, incluindo detalhes de cada corrida.",
       data: pointsReports,
     })
   } catch (error) {
