@@ -72,7 +72,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalConstructors}</div>
-            <p className="text-xs text-muted-foreground">Escuderias ativas</p>
+            <p className="text-xs text-muted-foreground">Escuderias cadastradas</p>
           </CardContent>
         </Card>
         <Card>
