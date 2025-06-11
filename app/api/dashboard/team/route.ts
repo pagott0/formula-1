@@ -73,7 +73,6 @@ export async function GET(request: NextRequest) {
       WHERE r.constructor_id = $1
       GROUP BY ra.year
       ORDER BY ra.year DESC
-      LIMIT 5
     `
 
     const yearResultsResult = await query(yearResultsQuery, [constructorId])
