@@ -51,7 +51,6 @@ export async function GET(request: NextRequest) {
       WHERE r.constructor_id = $1
       GROUP BY d.id, d.forename, d.surname
       ORDER BY wins DESC
-      LIMIT 4
     `
 
     const driversResult = await query(driversQuery, [constructorId])
