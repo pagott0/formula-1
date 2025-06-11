@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Ler o conteúdo do arquivo
     const fileContent = await file.text()
+    console.log(fileContent)
 
     // Parsear o CSV
     const records = parse(fileContent, {
@@ -48,7 +49,6 @@ export async function POST(request: NextRequest) {
           // Verificar se o piloto já existe
           const checkQuery = `SELECT id FROM drivers WHERE ref = $1`
           const checkResult = await client.query(checkQuery, [record.driverRef])
-
           let driverId
 
           if (checkResult.rows.length > 0) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
           } else {
             // Inserir novo piloto
             const insertQuery = `
-              INSERT INTO drivers (ref, number, code, forename, surname, dob, nationality)
+              INSERT INTO drivers (ref, number, code, forename, surname, date_of_birth, nationality)
               VALUES ($1, $2, $3, $4, $5, $6, $7)
               RETURNING id
             `

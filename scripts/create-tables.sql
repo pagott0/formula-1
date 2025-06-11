@@ -241,3 +241,27 @@ $$ LANGUAGE plpgsql;
 
 -- Executar a função para criar usuários para pilotos existentes
 SELECT create_users_for_existing_drivers();
+
+-- Função para popular a tabela driver_constructor com dados históricos
+CREATE OR REPLACE FUNCTION populate_driver_constructor()
+RETURNS VOID AS $$
+BEGIN
+    -- Inserir dados históricos baseados nos resultados das corridas
+    INSERT INTO driver_constructor (driver_id, constructor_id, year)
+    SELECT DISTINCT 
+        r.driver_id,
+        r.constructor_id,
+        EXTRACT(YEAR FROM ra.date)::INTEGER as year
+    FROM results r
+    JOIN races ra ON r.race_id = ra.id
+    LEFT JOIN driver_constructor dc 
+        ON dc.driver_id = r.driver_id 
+        AND dc.constructor_id = r.constructor_id 
+        AND dc.year = EXTRACT(YEAR FROM ra.date)::INTEGER
+    WHERE dc.driver_id IS NULL
+    ORDER BY year, driver_id, constructor_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Executar a função para popular a tabela driver_constructor
+SELECT populate_driver_constructor();

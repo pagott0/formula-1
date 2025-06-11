@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
 import type { SearchDriverResponse } from "@/lib/types"
+import AuthStorage from "@/utils/auth"
+import { toast } from "react-toastify"
 
 export default function TeamActions({ userName }: { userName: string }) {
-  const { toast } = useToast()
   const [openSearch, setOpenSearch] = useState(false)
   const [openImport, setOpenImport] = useState(false)
   const [searchName, setSearchName] = useState("")
@@ -40,23 +40,13 @@ export default function TeamActions({ userName }: { userName: string }) {
       setSearchResults(data.drivers)
 
       if (data.drivers.length === 0) {
-        toast({
-          title: "Nenhum piloto encontrado",
-          description: "Tente outro nome ou termo de busca.",
-        })
+        toast.error("Nenhum piloto encontrado")
       } else {
-        toast({
-          title: "Pilotos encontrados",
-          description: `Foram encontrados ${data.drivers.length} pilotos.`,
-        })
+        toast.success(`Foram encontrados ${data.drivers.length} pilotos.`)
       }
     } catch (error) {
       console.error("Erro ao buscar pilotos:", error)
-      toast({
-        title: "Erro na busca",
-        description: "Ocorreu um erro ao buscar pilotos.",
-        variant: "destructive",
-      })
+      toast.error("Ocorreu um erro ao buscar pilotos.")
     } finally {
       setIsSearching(false)
     }
@@ -72,11 +62,7 @@ export default function TeamActions({ userName }: { userName: string }) {
     e.preventDefault()
 
     if (!selectedFile) {
-      toast({
-        title: "Nenhum arquivo selecionado",
-        description: "Por favor, selecione um arquivo para importar.",
-        variant: "destructive",
-      })
+      toast.error("Por favor, selecione um arquivo para importar.")
       return
     }
 
@@ -86,7 +72,8 @@ export default function TeamActions({ userName }: { userName: string }) {
       const formData = new FormData()
       formData.append("file", selectedFile)
       // Em um cenário real, o constructorId viria da autenticação
-      formData.append("constructorId", "1") // McLaren
+      const authData = AuthStorage.getAuth()
+      formData.append("constructorId", authData?.user?.constructor_id?.toString() || "")
 
       const response = await fetch("/api/actions/team/import-drivers", {
         method: "POST",
@@ -96,25 +83,14 @@ export default function TeamActions({ userName }: { userName: string }) {
       const data = await response.json()
 
       if (data.success) {
-        toast({
-          title: "Pilotos importados",
-          description: data.message,
-        })
+        toast.success(data.message)
         setOpenImport(false)
       } else {
-        toast({
-          title: "Erro na importação",
-          description: data.message,
-          variant: "destructive",
-        })
+        toast.error(data.message)
       }
     } catch (error) {
       console.error("Erro ao importar pilotos:", error)
-      toast({
-        title: "Erro na importação",
-        description: "Ocorreu um erro ao importar os pilotos.",
-        variant: "destructive",
-      })
+      toast.error("Ocorreu um erro ao importar os pilotos.")
     } finally {
       setIsImporting(false)
     }
@@ -200,8 +176,23 @@ export default function TeamActions({ userName }: { userName: string }) {
                 <Input id="file" type="file" accept=".csv,.txt" onChange={handleFileChange} required />
                 <p className="text-xs text-muted-foreground mt-1">
                   O arquivo deve conter uma linha por piloto com os campos: driverRef, number, code, forename, surname,
-                  dob, nationality
+                  date_of_birth, nationality
                 </p>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-xs p-0 h-auto"
+                  onClick={() => {
+                    const link = document.createElement("a")
+                    link.href = "/sample-drivers.csv"
+                    link.download = "sample-drivers.csv"
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                  }}
+                >
+                  Baixar arquivo de exemplo
+                </Button>
               </div>
               <DialogFooter>
                 <Button type="submit" className="bg-[#F58020] hover:bg-[#D36D1C]" disabled={isImporting}>
