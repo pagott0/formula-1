@@ -176,5 +176,6 @@ export interface SearchDriverResponse {
 export interface ImportDriversResponse {
   success: boolean
   count: number
+  existingCount: number
   message: string
 }

@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     // Importar os pilotos usando uma transação
     const result = await withTransaction(async (client) => {
       let importedCount = 0
+      let existingCount = 0
       const errors = []
 
       for (const record of records) {
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
           if (checkResult.rows.length > 0) {
             // Piloto já existe, usar o ID existente
             driverId = checkResult.rows[0].id
+            existingCount++
           } else {
             // Inserir novo piloto
             const insertQuery = `
@@ -73,6 +75,7 @@ export async function POST(request: NextRequest) {
             ])
 
             driverId = insertResult.rows[0].id
+            importedCount++
           }
 
           // Associar o piloto à escuderia (se ainda não estiver associado)
@@ -83,8 +86,6 @@ export async function POST(request: NextRequest) {
           `
 
           await client.query(associateQuery, [driverId, constructorId])
-
-          importedCount++
         } catch (err) {
           errors.push({
             record: record.driverRef,
@@ -99,15 +100,16 @@ export async function POST(request: NextRequest) {
         VALUES ($1, 'import_drivers', $2)
       `
 
-      await client.query(logQuery, [constructorId, JSON.stringify({ count: importedCount, errors: errors.length })])
+      await client.query(logQuery, [constructorId, JSON.stringify({ count: importedCount, existingCount: existingCount, errors: errors.length })])
 
-      return { importedCount, errors }
+      return { importedCount, existingCount, errors }
     })
 
     return NextResponse.json({
       success: true,
       count: result.importedCount,
-      message: `${result.importedCount} pilotos importados com sucesso. ${result.errors.length} erros.`,
+      existingCount: result.existingCount,
+      message: `${result.importedCount} pilotos importados com sucesso. ${result.existingCount} pilotos já existentes. ${result.errors.length} erros.`,
     } as ImportDriversResponse)
   } catch (error) {
     console.error("Import drivers error:", error)

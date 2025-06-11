@@ -81,8 +81,9 @@ export default function TeamActions({ userName }: { userName: string }) {
       })
 
       const data = await response.json()
-
+      console.log(data)
       if (data.success) {
+        console.log(data.message)
         toast.success(data.message)
         setOpenImport(false)
       } else {
