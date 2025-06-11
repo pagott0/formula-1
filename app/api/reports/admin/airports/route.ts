@@ -10,31 +10,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Cidade não fornecida" }, { status: 400 })
     }
 
-    // Relatório 2: Aeroportos próximos a cidades
-    // Esta query assume que você tem uma tabela de aeroportos com coordenadas geográficas
-    // e usa a função de distância do PostgreSQL para calcular a distância entre pontos
     const airportsQuery = `
       SELECT 
-        a.name,
-        a.city,
-        ST_Distance(
-          ST_MakePoint(a.lng_deg, a.lat_deg)::geography,
-          (SELECT ST_MakePoint(lng_deg, lat_deg)::geography FROM geocities15k WHERE name = $1)
-        ) / 1000 AS distance
-      FROM airports a
-      WHERE ST_Distance(
-        ST_MakePoint(a.lng_deg, a.lat_deg)::geography,
-        (SELECT ST_MakePoint(lng_deg, lat_deg)::geography FROM geocities15k WHERE name = $1)
-      ) / 1000 <= 100
-      ORDER BY distance
+        city_name,
+        airport_iata,
+        airport_name,
+        airport_city,
+        distance_km,
+        airport_type
+      FROM airport_proximity
+      WHERE city_name ILIKE $1
+      ORDER BY distance_km
     `
-    console.log(airportsQuery)
 
-    const airportsResult = await query(airportsQuery, [city])
+    const airportsResult = await query(airportsQuery, [`%${city}%`])
     const airportsReports: AirportReport[] = airportsResult.rows.map((row) => ({
-      name: row.name,
-      city: row.city,
-      distance: Number.parseFloat(row.distance),
+      name: row.airport_name,
+      city: row.airport_city,
+      distance: Number.parseFloat(row.distance_km),
     }))
 
     return NextResponse.json({

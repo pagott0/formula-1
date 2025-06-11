@@ -265,3 +265,67 @@ $$ LANGUAGE plpgsql;
 
 -- Executar a função para popular a tabela driver_constructor
 SELECT populate_driver_constructor();
+
+-- Índice para otimizar a consulta de aeroportos próximos
+CREATE INDEX IF NOT EXISTS idx_airports_type_city ON airports (type, city);
+CREATE INDEX IF NOT EXISTS idx_airports_coordinates ON airports (lat_deg, lng_deg);
+
+-- Função para calcular distância entre coordenadas usando a fórmula de Haversine
+CREATE OR REPLACE FUNCTION calculate_distance(
+    lat1 DECIMAL,
+    lon1 DECIMAL,
+    lat2 DECIMAL,
+    lon2 DECIMAL
+) RETURNS DECIMAL AS $$
+DECLARE
+    R DECIMAL := 6371; -- Raio da Terra em km
+    dlat DECIMAL;
+    dlon DECIMAL;
+    a DECIMAL;
+    c DECIMAL;
+BEGIN
+    -- Converter graus para radianos
+    lat1 := lat1 * PI() / 180;
+    lon1 := lon1 * PI() / 180;
+    lat2 := lat2 * PI() / 180;
+    lon2 := lon2 * PI() / 180;
+    
+    -- Diferenças
+    dlat := lat2 - lat1;
+    dlon := lon2 - lon1;
+    
+    -- Fórmula de Haversine
+    a := SIN(dlat/2)^2 + COS(lat1) * COS(lat2) * SIN(dlon/2)^2;
+    c := 2 * ATAN2(SQRT(a), SQRT(1-a));
+    
+    RETURN R * c;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- View para otimizar a consulta de aeroportos próximos
+CREATE OR REPLACE VIEW airport_proximity AS
+WITH city_airports AS (
+    SELECT 
+        g.name AS city_name,
+        g.lat AS city_lat,
+        g.lng AS city_lng,
+        a.iata_code AS airport_iata,
+        a.name AS airport_name,
+        a.city AS airport_city,
+        a.type AS airport_type,
+        calculate_distance(g.lat, g.lng, a.lat_deg, a.lng_deg) AS distance
+    FROM geocities15k g
+    CROSS JOIN airports a
+    WHERE g.country = 'BR'
+    AND a.type IN ('medium_airport', 'large_airport')
+    AND calculate_distance(g.lat, g.lng, a.lat_deg, a.lng_deg) <= 100
+)
+SELECT 
+    city_name,
+    airport_iata,
+    airport_name,
+    airport_city,
+    ROUND(distance::numeric, 2) AS distance_km,
+    airport_type
+FROM city_airports
+ORDER BY city_name, distance_km;
