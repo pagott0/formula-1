@@ -252,35 +252,93 @@ function AdminReports() {
         <p className="text-gray-600 mb-4">Lista todas as escuderias cadastradas com a quantidade de pilotos e detalhes sobre corridas.</p>
         <div className="flex gap-2">
           <Button onClick={handleGenerateReport3} loading={isLoading}>Gerar Relatório</Button>
-          {reportData.length > 0 && (
+          {reportData?.length > 0 && (
             <Button onClick={handleHideReport} variant="outline" loading={false}>Esconder Relatório</Button>
           )}
         </div>
 
-        {reportData.length > 0 && (
-          <div className="mt-6">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Escuderia</TableHead>
-                    <TableHead>Pilotos</TableHead>
-                    <TableHead>Corridas</TableHead>
-                    <TableHead>Vitórias</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reportData.map((constructor, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{constructor.name}</TableCell>
-                      <TableCell>{constructor.drivers}</TableCell>
-                      <TableCell>{constructor.races}</TableCell>
-                      <TableCell>{constructor.wins}</TableCell>
-                    </TableRow>
+        {reportData?.length > 0 && (
+          <div className="space-y-8">
+            <h2 className="text-2xl font-bold">Relatório de Escuderias e Corridas</h2>
+            {reportData.map((report) => (
+              <div key={report.name} className="space-y-6 bg-white p-6 rounded-lg shadow">
+                {/* Nível 1: Informações Gerais da Escuderia */}
+                <div className="border-b pb-4">
+                  <h3 className="text-xl font-semibold mb-4">{report.name}</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-gray-50 p-4 rounded">
+                      <p className="text-sm text-gray-600">Total de Pilotos</p>
+                      <p className="text-2xl font-bold">{report.totalDrivers}</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded">
+                      <p className="text-sm text-gray-600">Total de Corridas</p>
+                      <p className="text-2xl font-bold">{report.totalRaces}</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded">
+                      <p className="text-sm text-gray-600">Total de Vitórias</p>
+                      <p className="text-2xl font-bold">{report.totalWins}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nível 2: Informações por Circuito */}
+                <div className="space-y-6">
+                  <h4 className="text-lg font-semibold">Informações por Circuito</h4>
+                  {report.circuits.map((circuit) => (
+                    <div key={circuit.name} className="space-y-4">
+                      <div className="bg-gray-50 p-4 rounded">
+                        <h5 className="font-medium mb-2">{circuit.name}</h5>
+                        <div className="grid grid-cols-4 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-600">Total de Corridas</p>
+                            <p className="font-semibold">{circuit.totalRaces}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Mínimo de Voltas</p>
+                            <p className="font-semibold">{circuit.lapStats.min}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Média de Voltas</p>
+                            <p className="font-semibold">{circuit.lapStats.avg}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Máximo de Voltas</p>
+                            <p className="font-semibold">{circuit.lapStats.max}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Nível 3: Detalhes das Corridas */}
+                      <div className="ml-4">
+                        <h6 className="text-sm font-medium mb-2">Detalhes das Corridas</h6>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Ano</TableHead>
+                                <TableHead>Piloto</TableHead>
+                                <TableHead>Voltas</TableHead>
+                                <TableHead>Tempo</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {circuit.races.map((race) => (
+                                <TableRow key={`${race.year}-${race.driverName}`}>
+                                  <TableCell>{race.year}</TableCell>
+                                  <TableCell>{race.driverName}</TableCell>
+                                  <TableCell>{race.laps}</TableCell>
+                                  <TableCell>{race.time}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

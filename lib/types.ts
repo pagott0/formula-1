@@ -129,9 +129,28 @@ export interface AirportReport {
 
 export interface ConstructorRacesReport {
   name: string
-  drivers: number
-  races: number
-  wins: number
+  totalDrivers: number
+  totalRaces: number
+  totalWins: number
+  circuits: CircuitInfo[]
+}
+
+export interface CircuitInfo {
+  name: string
+  totalRaces: number
+  lapStats: {
+    min: number
+    avg: number
+    max: number
+  }
+  races: RaceInfo[]
+}
+
+export interface RaceInfo {
+  year: number
+  driverName: string
+  laps: number
+  time: string
 }
 
 export interface DriverWinsReport {
