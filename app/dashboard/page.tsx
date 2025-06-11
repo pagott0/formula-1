@@ -9,6 +9,10 @@ import DriverDashboard from "@/components/driver-dashboard"
 import DashboardHeader from "@/components/dashboard-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AuthStorage from "@/utils/auth"
+import { ConstructorRacesReport, AirportReport, StatusReport, DriverWinsReport, PointsByYearReport } from "@/lib/types"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useToast } from "@/hooks/use-toast"
+import { Input } from "@/components/ui/input"
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("")
@@ -74,68 +78,524 @@ export default function DashboardPage() {
 }
 
 function AdminReports() {
+  const { toast } = useToast()
+  const [reportData, setReportData] = useState<ConstructorRacesReport[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [airportData, setAirportData] = useState<AirportReport[]>([])
+  const [isLoadingAirports, setIsLoadingAirports] = useState(false)
+  const [city, setCity] = useState("")
+  const [statusData, setStatusData] = useState<StatusReport[]>([])
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+
+  const handleGenerateReport1 = async () => {
+    try {
+      setIsLoadingStatus(true)
+      const response = await fetch("/api/reports/admin/status-results")
+      const responseJson: {
+        data: StatusReport[]
+      } = await response.json()
+      setStatusData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingStatus(false)
+    }
+  }
+
+  const handleGenerateReport2 = async () => {
+    if (!city) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe uma cidade",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsLoadingAirports(true)
+      const response = await fetch(`/api/reports/admin/airports?city=${encodeURIComponent(city)}`)
+      const responseJson: {
+        data: AirportReport[]
+      } = await response.json()
+      console.log(responseJson.data)
+      setAirportData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingAirports(false)
+    }
+  }
+
+  const handleGenerateReport3 = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch("/api/reports/admin/constructors-races")
+      const responseJson: {
+        data: ConstructorRacesReport[]
+      } = await response.json()
+      setReportData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleHideReport = () => {
+    setReportData([])
+  }
+
+  const handleHideAirportReport = () => {
+    setAirportData([])
+  }
+
+  const handleHideStatusReport = () => {
+    setStatusData([])
+  }
+  
   return (
     <div className="grid gap-6">
-      <ReportCard
-        title="Relatório 1: Quantidade de resultados por status"
-        description="Indica a quantidade de resultados por cada status, apresentando o nome do status e sua contagem."
-      />
-      <ReportCard
-        title="Relatório 2: Aeroportos próximos a cidades"
-        description="Apresenta aeroportos brasileiros a até 100 Km de uma cidade especificada."
-      />
-      <ReportCard
-        title="Relatório 3: Escuderias e corridas"
-        description="Lista todas as escuderias cadastradas com a quantidade de pilotos e detalhes sobre corridas."
-      />
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 1: Quantidade de resultados por status</h3>
+        <p className="text-gray-600 mb-4">Indica a quantidade de resultados por cada status, apresentando o nome do status e sua contagem.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport1} loading={isLoadingStatus}>Gerar Relatório</Button>
+          {statusData?.length > 0 && (
+            <Button onClick={handleHideStatusReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {statusData?.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {statusData.map((status, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{status.status}</TableCell>
+                      <TableCell>{status.count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 2: Aeroportos próximos a cidades</h3>
+        <p className="text-gray-600 mb-4">Apresenta aeroportos brasileiros a até 100 Km de uma cidade especificada.</p>
+        <div className="flex gap-2 items-center">
+          <Input
+            type="text"
+            placeholder="Digite o nome da cidade"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="max-w-xs"
+          />
+          <Button onClick={handleGenerateReport2} loading={isLoadingAirports}>Gerar Relatório</Button>
+          {airportData?.length > 0 && (
+            <Button onClick={handleHideAirportReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {airportData?.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Aeroporto</TableHead>
+                    <TableHead>Cidade</TableHead>
+                    <TableHead>Distância (km)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {airportData.map((airport, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{airport.name}</TableCell>
+                      <TableCell>{airport.city}</TableCell>
+                      <TableCell>{airport.distance.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 3: Escuderias e corridas</h3>
+        <p className="text-gray-600 mb-4">Lista todas as escuderias cadastradas com a quantidade de pilotos e detalhes sobre corridas.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport3} loading={isLoading}>Gerar Relatório</Button>
+          {reportData.length > 0 && (
+            <Button onClick={handleHideReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {reportData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Escuderia</TableHead>
+                    <TableHead>Pilotos</TableHead>
+                    <TableHead>Corridas</TableHead>
+                    <TableHead>Vitórias</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reportData.map((constructor, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{constructor.name}</TableCell>
+                      <TableCell>{constructor.drivers}</TableCell>
+                      <TableCell>{constructor.races}</TableCell>
+                      <TableCell>{constructor.wins}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 function TeamReports() {
+  const { toast } = useToast()
+  const [driversData, setDriversData] = useState<DriverWinsReport[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [statusData, setStatusData] = useState<StatusReport[]>([])
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+
+  const handleGenerateReport4 = async () => {
+    try {
+      setIsLoading(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.constructor_id) {
+        toast({
+          title: "Erro",
+          description: "ID da escuderia não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/team/drivers-wins?constructorId=${authData.user.constructor_id}`)
+      const responseJson: {
+        data: DriverWinsReport[]
+      } = await response.json()
+      setDriversData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGenerateReport5 = async () => {
+    try {
+      setIsLoadingStatus(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.constructor_id) {
+        toast({
+          title: "Erro",
+          description: "ID da escuderia não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/team/status-results?constructorId=${authData.user.constructor_id}`)
+      const responseJson: {
+        data: StatusReport[]
+      } = await response.json()
+      setStatusData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingStatus(false)
+    }
+  }
+
+  const handleHideReport = () => {
+    setDriversData([])
+  }
+
+  const handleHideStatusReport = () => {
+    setStatusData([])
+  }
+
   return (
     <div className="grid gap-6">
-      <ReportCard
-        title="Relatório 4: Pilotos da escuderia"
-        description="Lista os pilotos da escuderia e a quantidade de vitórias de cada um."
-      />
-      <ReportCard
-        title="Relatório 5: Resultados por status"
-        description="Lista a quantidade de resultados por cada status, limitadas ao escopo da escuderia."
-      />
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 4: Pilotos da escuderia</h3>
+        <p className="text-gray-600 mb-4">Lista os pilotos da escuderia e a quantidade de vitórias de cada um.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport4} loading={isLoading}>Gerar Relatório</Button>
+          {driversData.length > 0 && (
+            <Button onClick={handleHideReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {driversData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Piloto</TableHead>
+                    <TableHead>Vitórias</TableHead>
+                    <TableHead>Pontos</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {driversData.map((driver, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{driver.name}</TableCell>
+                      <TableCell>{driver.wins}</TableCell>
+                      <TableCell>{driver.points}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 5: Resultados por status</h3>
+        <p className="text-gray-600 mb-4">Lista a quantidade de resultados por cada status, limitadas ao escopo da escuderia.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport5} loading={isLoadingStatus}>Gerar Relatório</Button>
+          {statusData.length > 0 && (
+            <Button onClick={handleHideStatusReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {statusData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {statusData.map((status, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{status.status}</TableCell>
+                      <TableCell>{status.count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 function DriverReports() {
+  const { toast } = useToast()
+  const [pointsData, setPointsData] = useState<PointsByYearReport[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [statusData, setStatusData] = useState<StatusReport[]>([])
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+
+  const handleGenerateReport6 = async () => {
+    try {
+      setIsLoading(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.driver_id) {
+        toast({
+          title: "Erro",
+          description: "ID do piloto não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/driver/points-by-year?driverId=${authData.user.driver_id}`)
+      const responseJson: {
+        data: PointsByYearReport[]
+      } = await response.json()
+      setPointsData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGenerateReport7 = async () => {
+    try {
+      setIsLoadingStatus(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.driver_id) {
+        toast({
+          title: "Erro",
+          description: "ID do piloto não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/driver/status-results?driverId=${authData.user.driver_id}`)
+      const responseJson: {
+        data: StatusReport[]
+      } = await response.json()
+      setStatusData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingStatus(false)
+    }
+  }
+
+  const handleHideReport = () => {
+    setPointsData([])
+  }
+
+  const handleHideStatusReport = () => {
+    setStatusData([])
+  }
+
   return (
     <div className="grid gap-6">
-      <ReportCard
-        title="Relatório 6: Pontos por ano"
-        description="Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1."
-      />
-      <ReportCard
-        title="Relatório 7: Resultados por status"
-        description="Lista a quantidade de resultados por cada status nas corridas em que o piloto participou."
-      />
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 6: Pontos por ano</h3>
+        <p className="text-gray-600 mb-4">Consulta a quantidade total de pontos obtidos por ano de participação na Fórmula 1.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport6} loading={isLoading}>Gerar Relatório</Button>
+          {pointsData.length > 0 && (
+            <Button onClick={handleHideReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {pointsData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ano</TableHead>
+                    <TableHead>Pontos</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pointsData.map((point, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{point.year}</TableCell>
+                      <TableCell>{point.points}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 7: Resultados por status</h3>
+        <p className="text-gray-600 mb-4">Lista a quantidade de resultados por cada status nas corridas em que o piloto participou.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport7} loading={isLoadingStatus}>Gerar Relatório</Button>
+          {statusData.length > 0 && (
+            <Button onClick={handleHideStatusReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {statusData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {statusData.map((status, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{status.status}</TableCell>
+                      <TableCell>{status.count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
-function ReportCard({ title, description }: { title: string; description: string }) {
+function ReportCard({ title, description, onClick }: { title: string; description: string; onClick?: () => void }) {
   return (
     <div className="border rounded-lg p-6 bg-white shadow-sm">
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-600 mb-4">{description}</p>
-      <Button>Gerar Relatório</Button>
+      <Button onClick={onClick} loading={false} variant="default">Gerar Relatório</Button>
     </div>
   )
 }
 
-function Button({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+function Button({ children, onClick, loading, variant = "default" }: { children: React.ReactNode; onClick?: () => void; loading: boolean; variant?: "default" | "outline" }) {
+  const baseClasses = "px-4 py-2 rounded-md font-medium"
+  const variantClasses = {
+    default: "bg-[#e10600] hover:bg-[#b30500] text-white",
+    outline: "border border-[#e10600] text-[#e10600] hover:bg-[#e10600] hover:text-white"
+  }
+
   return (
-    <button onClick={onClick} className="bg-[#e10600] hover:bg-[#b30500] text-white px-4 py-2 rounded-md font-medium">
-      {children}
+    <button 
+      onClick={onClick} 
+      className={`${baseClasses} ${variantClasses[variant]}`} 
+      disabled={loading}
+    >
+      {loading ? "Gerando..." : children}
     </button>
   )
 }
