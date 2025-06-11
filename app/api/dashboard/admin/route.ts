@@ -155,7 +155,6 @@ export async function GET(request: NextRequest) {
         WHERE ra.year = date_part('year', CURRENT_DATE)
         GROUP BY c.id, c.name
         ORDER BY SUM(r.points) DESC
-        LIMIT 4
       )
       SELECT 
         ra.name,
