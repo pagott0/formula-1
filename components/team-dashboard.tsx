@@ -29,7 +29,7 @@ export default function TeamDashboard({ userName }: { userName: string }) {
 
         setStats(data.stats)
         setDrivers(data.drivers)
-        setResults(data.results)
+        setResults(data.yearResults)
         setStatusData(data.status)
       } catch (error) {
         console.error("Erro ao carregar dados do dashboard:", error)
