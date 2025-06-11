@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { Trophy, Flag, Calendar } from "lucide-react"
 import type { DriverStats, CareerYear, CircuitPerformance } from "@/lib/types"
+import Loading from "./loading"
 import AuthStorage from "@/utils/auth"
 
 export default function DriverDashboard({ userName }: { userName: string }) {
@@ -44,6 +44,11 @@ export default function DriverDashboard({ userName }: { userName: string }) {
 
   return (
     <div className="space-y-8">
+      {loading 
+      ?
+        <Loading />
+      :
+        <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -76,27 +81,6 @@ export default function DriverDashboard({ userName }: { userName: string }) {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Pontuação por Temporada</CardTitle>
-          <CardDescription>Evolução dos pontos conquistados ao longo da carreira</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={pointsByYear}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="points" stroke="#00D2BE" strokeWidth={2} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
 
       <Tabs defaultValue="career">
         <TabsList className="grid w-full grid-cols-2">
@@ -150,6 +134,8 @@ export default function DriverDashboard({ userName }: { userName: string }) {
           </div>
         </TabsContent>
       </Tabs>
+      </>
+      }
     </div>
   )
 }
