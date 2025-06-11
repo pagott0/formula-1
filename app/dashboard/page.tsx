@@ -599,7 +599,7 @@ function DriverReports() {
                         <TableRow key={raceIndex}>
                           <TableCell>{race.name}</TableCell>
                           <TableCell>{new Date(race.date).toLocaleDateString('pt-BR')}</TableCell>
-                          <TableCell>{race.position || 0}º</TableCell>
+                          <TableCell>{race.position ? `${race.position}º` : "Não concluída"}</TableCell>
                           <TableCell>{race.points}</TableCell>
                         </TableRow>
                       ))}
