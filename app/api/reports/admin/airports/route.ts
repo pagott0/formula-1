@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
       name: row.airport_name,
       city: row.airport_city,
       distance: Number.parseFloat(row.distance_km),
+      iata: row.airport_iata,
+      type: row.airport_type
     }))
 
     return NextResponse.json({

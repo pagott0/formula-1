@@ -226,6 +226,8 @@ function AdminReports() {
                   <TableRow>
                     <TableHead>Aeroporto</TableHead>
                     <TableHead>Cidade</TableHead>
+                    <TableHead>Código IATA</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Distância (km)</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -234,6 +236,8 @@ function AdminReports() {
                     <TableRow key={index}>
                       <TableCell>{airport.name}</TableCell>
                       <TableCell>{airport.city}</TableCell>
+                      <TableCell>{airport.iata}</TableCell>
+                      <TableCell>{airport.type === 'medium_airport' ? 'Médio' : 'Grande'}</TableCell>
                       <TableCell>{airport.distance.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}

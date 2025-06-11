@@ -122,6 +122,8 @@ export interface AirportReport {
   name: string
   city: string
   distance: number
+  iata: string
+  type: string
 }
 
 export interface ConstructorRacesReport {
