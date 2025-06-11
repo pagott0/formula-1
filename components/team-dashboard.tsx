@@ -60,7 +60,7 @@ export default function TeamDashboard({ userName }: { userName: string }) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalWins || 0}</div>
-            <p className="text-xs text-muted-foreground">Desde 1966</p>
+            <p className="text-xs text-muted-foreground">Desde {stats?.period?.slice(0, 4)}</p>
           </CardContent>
         </Card>
         <Card>
