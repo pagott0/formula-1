@@ -9,7 +9,7 @@ import DriverDashboard from "@/components/driver-dashboard"
 import DashboardHeader from "@/components/dashboard-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AuthStorage from "@/utils/auth"
-import { ConstructorRacesReport, AirportReport, StatusReport } from "@/lib/types"
+import { ConstructorRacesReport, AirportReport, StatusReport, DriverWinsReport } from "@/lib/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
@@ -285,16 +285,146 @@ function AdminReports() {
 }
 
 function TeamReports() {
+  const { toast } = useToast()
+  const [driversData, setDriversData] = useState<DriverWinsReport[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [statusData, setStatusData] = useState<StatusReport[]>([])
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+
+  const handleGenerateReport4 = async () => {
+    try {
+      setIsLoading(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.constructor_id) {
+        toast({
+          title: "Erro",
+          description: "ID da escuderia não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/team/drivers-wins?constructorId=${authData.user.constructor_id}`)
+      const responseJson: {
+        data: DriverWinsReport[]
+      } = await response.json()
+      setDriversData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGenerateReport5 = async () => {
+    try {
+      setIsLoadingStatus(true)
+      const authData = AuthStorage.getAuth()
+      if (!authData?.user?.constructor_id) {
+        toast({
+          title: "Erro",
+          description: "ID da escuderia não encontrado",
+          variant: "destructive",
+        })
+        return
+      }
+      const response = await fetch(`/api/reports/team/status-results?constructorId=${authData.user.constructor_id}`)
+      const responseJson: {
+        data: StatusReport[]
+      } = await response.json()
+      setStatusData(responseJson.data)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingStatus(false)
+    }
+  }
+
+  const handleHideReport = () => {
+    setDriversData([])
+  }
+
+  const handleHideStatusReport = () => {
+    setStatusData([])
+  }
+
   return (
     <div className="grid gap-6">
-      <ReportCard
-        title="Relatório 4: Pilotos da escuderia"
-        description="Lista os pilotos da escuderia e a quantidade de vitórias de cada um."
-      />
-      <ReportCard
-        title="Relatório 5: Resultados por status"
-        description="Lista a quantidade de resultados por cada status, limitadas ao escopo da escuderia."
-      />
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 4: Pilotos da escuderia</h3>
+        <p className="text-gray-600 mb-4">Lista os pilotos da escuderia e a quantidade de vitórias de cada um.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport4} loading={isLoading}>Gerar Relatório</Button>
+          {driversData.length > 0 && (
+            <Button onClick={handleHideReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {driversData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Piloto</TableHead>
+                    <TableHead>Vitórias</TableHead>
+                    <TableHead>Pontos</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {driversData.map((driver, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{driver.name}</TableCell>
+                      <TableCell>{driver.wins}</TableCell>
+                      <TableCell>{driver.points}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border rounded-lg p-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold mb-2">Relatório 5: Resultados por status</h3>
+        <p className="text-gray-600 mb-4">Lista a quantidade de resultados por cada status, limitadas ao escopo da escuderia.</p>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateReport5} loading={isLoadingStatus}>Gerar Relatório</Button>
+          {statusData.length > 0 && (
+            <Button onClick={handleHideStatusReport} variant="outline" loading={false}>Esconder Relatório</Button>
+          )}
+        </div>
+
+        {statusData.length > 0 && (
+          <div className="mt-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {statusData.map((status, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{status.status}</TableCell>
+                      <TableCell>{status.count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

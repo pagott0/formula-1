@@ -4,6 +4,9 @@ interface AuthData {
     id: string;
     email: string;
     name: string;
+    user_type: "admin" | "team" | "driver";
+    constructor_id?: number;
+    driver_id?: number;
   };
   refreshToken?: string;
   expiresAt?: number;
