@@ -158,6 +158,8 @@ export interface CreateDriverRequest {
   surname: string
   dob: string
   nationality: string
+  constructorId: string
+  year: number
 }
 
 export interface SearchDriverRequest {

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -16,11 +16,21 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "react-toastify"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function AdminActions() {
   const [openTeam, setOpenTeam] = useState(false)
   const [openDriver, setOpenDriver] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [constructors, setConstructors] = useState<{ id: number; name: string }[]>([])
+  const [selectedConstructor, setSelectedConstructor] = useState<string>("")
+  const [year, setYear] = useState<string>(new Date().getFullYear().toString())
   
   // Add state management for team form fields
   const [constructorRef, setConstructorRef] = useState("")
@@ -36,6 +46,23 @@ export default function AdminActions() {
   const [surname, setSurname] = useState("")
   const [dob, setDob] = useState("")
   const [driverNationality, setDriverNationality] = useState("")
+
+  useEffect(() => {
+    const fetchConstructors = async () => {
+      try {
+        const response = await fetch("/api/actions/admin/get-constructors")
+        const data = await response.json()
+        if (data.constructors) {
+          setConstructors(data.constructors)
+        }
+      } catch (error) {
+        console.error("Error fetching constructors:", error)
+        toast.error("Erro ao carregar escuderias")
+      }
+    }
+
+    fetchConstructors()
+  }, [])
 
   const handleTeamSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,6 +136,8 @@ export default function AdminActions() {
           surname,
           dob,
           nationality: driverNationality,
+          constructorId: selectedConstructor,
+          year: parseInt(year),
         }),
       })
 
@@ -123,7 +152,6 @@ export default function AdminActions() {
       }
 
       if(response.status === 200) {
-        console.log('sucesso')
         toast.success("Piloto cadastrado com sucesso")
         setOpenDriver(false)
         
@@ -135,6 +163,8 @@ export default function AdminActions() {
         setSurname("")
         setDob("")
         setDriverNationality("")
+        setSelectedConstructor("")
+        setYear(new Date().getFullYear().toString())
         setIsLoading(false)
       } else if(response.status === 400) {
         toast.error("Piloto já existe")
@@ -305,6 +335,37 @@ export default function AdminActions() {
                     onChange={(e) => setDriverNationality(e.target.value)}
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="constructor">Escuderia</Label>
+                <Select
+                  value={selectedConstructor}
+                  onValueChange={setSelectedConstructor}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma escuderia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {constructors.map((constructor) => (
+                      <SelectItem key={constructor.id} value={constructor.id.toString()}>
+                        {constructor.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="year">Ano</Label>
+                <Input 
+                  id="year" 
+                  type="number" 
+                  min="1950"
+                  max={new Date().getFullYear()}
+                  required 
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                />
               </div>
               <DialogFooter>
                 <Button loading={isLoading} disabled={isLoading} type="submit" className="bg-[#e10600] hover:bg-[#b30500]">
