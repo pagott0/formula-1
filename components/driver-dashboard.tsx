@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { Trophy, Flag, Calendar } from "lucide-react"
 import type { DriverStats, CareerYear, CircuitPerformance } from "@/lib/types"
+import AuthStorage from "@/utils/auth"
 
-export default function DriverDashboard() {
+export default function DriverDashboard({ userName }: { userName: string }) {
   const [stats, setStats] = useState<DriverStats | null>(null)
   const [career, setCareer] = useState<CareerYear[]>([])
   const [circuits, setCircuits] = useState<CircuitPerformance[]>([])
@@ -18,7 +19,8 @@ export default function DriverDashboard() {
     const fetchData = async () => {
       try {
         // Em um cenário real, o driverId viria da autenticação
-        const driverId = 1 // Lewis Hamilton
+        const user = AuthStorage.getUser()
+        const driverId = user?.driver_id || ""
         const response = await fetch(`/api/dashboard/driver?driverId=${driverId}`)
         const data = await response.json()
 
@@ -131,7 +133,6 @@ export default function DriverDashboard() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-2">Circuito</th>
-                  <th className="text-left p-2">Pontos</th>
                   <th className="text-left p-2">Vitórias</th>
                   <th className="text-left p-2">Corridas</th>
                 </tr>
@@ -140,7 +141,6 @@ export default function DriverDashboard() {
                 {circuits.map((circuit, index) => (
                   <tr key={index} className="border-b">
                     <td className="p-2">{circuit.circuit}</td>
-                    <td className="p-2">{circuit.points}</td>
                     <td className="p-2">{circuit.wins}</td>
                     <td className="p-2">{circuit.races}</td>
                   </tr>

@@ -2,8 +2,11 @@ interface AuthData {
   token?: string;
   user?: {
     id: string;
-    email: string;
+    username: string;
+    user_type: string;
     name: string;
+    constructor_id: number | null;
+    driver_id: number | null;
   };
   refreshToken?: string;
   expiresAt?: number;

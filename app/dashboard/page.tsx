@@ -42,7 +42,7 @@ export default function DashboardPage() {
           <TabsContent value="dashboard" className="space-y-6">
             {userType === "admin" && <AdminDashboard />}
             {userType === "team" && <TeamDashboard userName={username} />}
-            {userType === "driver" && <DriverDashboard />}
+            {userType === "driver" && <DriverDashboard userName={username} />}
           </TabsContent>
 
           <TabsContent value="reports">
