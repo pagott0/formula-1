@@ -75,7 +75,6 @@ export async function GET(request: NextRequest) {
       GROUP BY c.name
       HAVING COUNT(DISTINCT r.race_id) >= 3
       ORDER BY wins DESC, avg_position ASC
-      LIMIT 5
     `
 
     const circuitsResult = await query(circuitsQuery, [driverId])
