@@ -66,7 +66,8 @@ export async function GET(request: NextRequest) {
         c.name AS circuit,
         COUNT(DISTINCT r.race_id) AS races,
         SUM(CASE WHEN r.position = 1 THEN 1 ELSE 0 END) AS wins,
-        AVG(r.position) AS avg_position
+        AVG(r.position) AS avg_position,
+        SUM(r.points) AS points
       FROM drivers d
       JOIN results r ON r.driver_id = d.id
       JOIN races ra ON r.race_id = ra.id
@@ -83,6 +84,7 @@ export async function GET(request: NextRequest) {
       races: Number.parseInt(row.races),
       wins: Number.parseInt(row.wins),
       avgPosition: Number.parseFloat(row.avg_position),
+      points: Number.parseFloat(row.points),
     }))
 
     return NextResponse.json({

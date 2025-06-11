@@ -110,6 +110,7 @@ export interface CircuitPerformance {
   races: number
   wins: number
   avgPosition: number
+  points: number
 }
 
 // Tipos para relatórios

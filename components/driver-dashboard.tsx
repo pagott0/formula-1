@@ -119,6 +119,7 @@ export default function DriverDashboard({ userName }: { userName: string }) {
                   <th className="text-left p-2">Circuito</th>
                   <th className="text-left p-2">Vitórias</th>
                   <th className="text-left p-2">Corridas</th>
+                  <th className="text-left p-2">Pontos</th>
                 </tr>
               </thead>
               <tbody>
@@ -127,6 +128,7 @@ export default function DriverDashboard({ userName }: { userName: string }) {
                     <td className="p-2">{circuit.circuit}</td>
                     <td className="p-2">{circuit.wins}</td>
                     <td className="p-2">{circuit.races}</td>
+                    <td className="p-2">{circuit.points}</td>
                   </tr>
                 ))}
               </tbody>
