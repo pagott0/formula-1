@@ -170,7 +170,7 @@ export default function TeamDashboard({ userName }: { userName: string }) {
                 {results?.map((result, index) => (
                   <tr key={index} className="border-b">
                     <td className="p-2">{result.year}</td>
-                    <td className="p-2">{result.wins}º</td>
+                    <td className="p-2">{result.wins}</td>
                     <td className="p-2">{result.points}</td>
                   </tr>
                 ))}
