@@ -3,7 +3,6 @@ interface AuthData {
   user?: {
     id: string;
     username: string;
-    user_type: string;
     name: string;
     user_type: "admin" | "team" | "driver";
     constructor_id?: number | null;
