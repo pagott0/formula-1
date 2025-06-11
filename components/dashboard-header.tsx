@@ -12,9 +12,10 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ userType, username, userId}: DashboardHeaderProps) {
   const [activeDrivers, setActiveDrivers] = useState<number | null>(null)
+  const [teamName, setTeamName] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchActiveDrivers = async () => {
+    const fetchData = async () => {
       if (userType === "team") {
         try {
           const response = await fetch(`/api/dashboard/team/active-drivers?constructorName=${username}`)
@@ -25,10 +26,20 @@ export default function DashboardHeader({ userType, username, userId}: Dashboard
         } catch (error) {
           console.error("Error fetching active drivers:", error)
         }
+      } else if (userType === "driver") {
+        try {
+          const response = await fetch(`/api/dashboard/driver/team?driverName=${username}`)
+          const data = await response.json()
+          if (data.teamName) {
+            setTeamName(data.teamName)
+          }
+        } catch (error) {
+          console.error("Error fetching team name:", error)
+        }
       }
     }
 
-    fetchActiveDrivers()
+    fetchData()
   }, [userType, username])
 
   const getUserInfo = () => {
@@ -50,7 +61,7 @@ export default function DashboardHeader({ userType, username, userId}: Dashboard
       case "driver":
         return {
           name: username,
-          description: "Piloto",
+          description: teamName ? `Piloto - ${teamName}` : "Piloto",
           initials: username.charAt(0).toUpperCase() + username.charAt(1).toUpperCase(),
           userId
         }
